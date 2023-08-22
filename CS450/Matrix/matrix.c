@@ -47,17 +47,13 @@ double determinant(double **M, int size) {
 
 int main()  {
     FILE *file = fopen("project1_key.txt", "r");
-    if (file == NULL) {
-        printf("Can not open text file!!");
-        return 1;
-    }
 
-    char line[100];
+    char Find_input_word[100];
     int N = -1;
     double **matrix = NULL;
 
-    while (fgets(line, sizeof(line), file) != NULL) {
-        if (strstr(line, "input:") != NULL) {
+    while (fgets(Find_input_word, sizeof(Find_input_word), file) != NULL) {
+        if (strstr(Find_input_word, "input:") != NULL) {
             if (matrix != NULL) {
                 double det = determinant(matrix, N);
                 printf("Det is: %.2lf\n", det);
