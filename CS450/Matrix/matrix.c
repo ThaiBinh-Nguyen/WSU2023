@@ -3,80 +3,82 @@
 #include <string.h>
 #include <math.h>
 
-double determinant(double **M, int size) {
-    double det = 1.0;
-    
-    // Transform the matrix into upper triangular form
-    for (int i = 0; i < size; i++) {
-        // Find the pivot
-        int pivotRow = i;
-        for (int j = i + 1; j < size; j++) {
-            if (fabs(M[j][i]) > fabs(M[pivotRow][i])) {
-                pivotRow = j;
+// Function to calculate the determinant of a matrix
+double calculateDeterminant(double **matrix, int size) {
+    double determinant = 1.0;
+
+    for (int currentRow = 0; currentRow < size; currentRow++) {
+        // Find the row with the maximum absolute value in the current column
+        int pivotRow = currentRow;
+        for (int nextRow = currentRow + 1; nextRow < size; nextRow++) {
+            if (fabs(matrix[nextRow][currentRow]) > fabs(matrix[pivotRow][currentRow])) {
+                pivotRow = nextRow;
             }
         }
-        
-        if (pivotRow != i) {
-            // Swap rows
-            double *tempRow = M[i];
-            M[i] = M[pivotRow];
-            M[pivotRow] = tempRow;
-            
-            // Update determinant sign
-            det *= -1.0;
+
+        // If the pivot row is not the current row, swap rows
+        if (pivotRow != currentRow) {
+            double *tempRow = matrix[currentRow];
+            matrix[currentRow] = matrix[pivotRow];
+            matrix[pivotRow] = tempRow;
+            determinant = -determinant; // Change determinant sign
         }
-        
-        if (fabs(M[i][i]) < 1e-10) {
-            // Singular matrix, determinant is zero
+
+        // If the element on the diagonal is close to 0, the matrix is singular
+        if (matrix[currentRow][currentRow] == 0.0) {
+            printf("Singular matrix detected.\n");
             return 0.0;
         }
-        
-        // Eliminate other rows below
-        for (int j = i + 1; j < size; j++) {
-            double factor = M[j][i] / M[i][i];
-            for (int k = i; k < size; k++) {
-                M[j][k] -= factor * M[i][k];
+
+        // Eliminate rows below (to keep elements below diagonal equal to 0)
+        for (int nextRow = currentRow + 1; nextRow < size; nextRow++) {
+            double factor = matrix[nextRow][currentRow] / matrix[currentRow][currentRow];
+            for (int col = currentRow; col < size; col++) {
+                matrix[nextRow][col] -= factor * matrix[currentRow][col];
             }
         }
-        
-        det *= M[i][i];
+
+        // Multiply determinant by the element on the current diagonal
+        determinant *= matrix[currentRow][currentRow];
     }
 
-    return det;
+    return determinant;
 }
 
-int main()  {
+int main() {
     FILE *file = fopen("project1_key.txt", "r");
 
-    char Find_input_word[100];
-    int N = -1;
+    char line[100];
+    int matrixSize = -1;
     double **matrix = NULL;
 
-    while (fgets(Find_input_word, sizeof(Find_input_word), file) != NULL) {
-        if (strstr(Find_input_word, "input:") != NULL) {
+    while (fgets(line, sizeof(line), file) != NULL) {
+        if (strstr(line, "input:") != NULL) {
+            // Free memory for the previous matrix, if any
             if (matrix != NULL) {
-                double det = determinant(matrix, N);
-                printf("Det is: %.2lf\n", det);
+                double det = calculateDeterminant(matrix, matrixSize);
+                printf("Determinant is: %.2lf\n", det);
 
                 // Free memory for the current matrix
-                for (int i = 0; i < N; i++) {
+                for (int i = 0; i < matrixSize; i++) {
                     free(matrix[i]);
                 }
                 free(matrix);
             }
 
-            fscanf(file, "%d", &N);
-            printf("N is: %d\n", N);
+            // Read matrix size from the file
+            fscanf(file, "%d", &matrixSize);
+            printf("Matrix size is: %d\n", matrixSize);
 
-            // Initialize matrix
-            matrix = (double **)malloc(N * sizeof(double *));
-            for (int i = 0; i < N; i++) {
-                matrix[i] = (double *)malloc(N * sizeof(double));
+            // Initialize the matrix
+            matrix = (double **)malloc(matrixSize * sizeof(double *));
+            for (int i = 0; i < matrixSize; i++) {
+                matrix[i] = (double *)malloc(matrixSize * sizeof(double));
             }
 
-            // Read information for matrix.
-            for (int i = 0; i < N; i++) {
-                for (int j = 0; j < N; j++) {
+            // Read data for the matrix
+            for (int i = 0; i < matrixSize; i++) {
+                for (int j = 0; j < matrixSize; j++) {
                     fscanf(file, "%lf", &matrix[i][j]);
                 }
             }
@@ -85,11 +87,11 @@ int main()  {
 
     // Calculate and print determinant for the last matrix
     if (matrix != NULL) {
-        double det = determinant(matrix, N);
-        printf("Det is: %.2lf\n", det);
+        double det = calculateDeterminant(matrix, matrixSize);
+        printf("Determinant is: %.2lf\n", det);
 
         // Free memory for the last matrix
-        for (int i = 0; i < N; i++) {
+        for (int i = 0; i < matrixSize; i++) {
             free(matrix[i]);
         }
         free(matrix);
