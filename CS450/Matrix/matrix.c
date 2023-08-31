@@ -24,12 +24,6 @@ double calculateDeterminant(double **matrix, int size) {
             determinant = -determinant; // Change determinant sign
         }
 
-        // If the element on the diagonal is close to 0, the matrix is singular
-        if (matrix[currentRow][currentRow] == 0.0) {
-            printf("Singular matrix detected.\n");
-            return 0.0;
-        }
-
         // Eliminate rows below (to keep elements below diagonal equal to 0)
         for (int nextRow = currentRow + 1; nextRow < size; nextRow++) {
             double factor = matrix[nextRow][currentRow] / matrix[currentRow][currentRow];
@@ -57,7 +51,7 @@ int main() {
             // Free memory for the previous matrix, if any
             if (matrix != NULL) {
                 double det = calculateDeterminant(matrix, matrixSize);
-                printf("Determinant is: %.2lf\n", det);
+                printf("Determinant is: %.0lf\n", det);
 
                 // Free memory for the current matrix
                 for (int i = 0; i < matrixSize; i++) {
@@ -68,7 +62,6 @@ int main() {
 
             // Read matrix size from the file
             fscanf(file, "%d", &matrixSize);
-            printf("Matrix size is: %d\n", matrixSize);
 
             // Initialize the matrix
             matrix = (double **)malloc(matrixSize * sizeof(double *));
@@ -88,7 +81,7 @@ int main() {
     // Calculate and print determinant for the last matrix
     if (matrix != NULL) {
         double det = calculateDeterminant(matrix, matrixSize);
-        printf("Determinant is: %.2lf\n", det);
+        printf("Determinant is: %.0lf\n", det);
 
         // Free memory for the last matrix
         for (int i = 0; i < matrixSize; i++) {
