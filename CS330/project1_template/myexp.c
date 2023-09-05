@@ -3,21 +3,37 @@
 #include <math.h>
 
 #ifndef M_LOG2E
-#define M_LOG2E   1.44269504088896340735992468100189214
+#define M_LOG2E 1.44269504088896340735992468100189214
 #endif
 
 #ifndef M_LN2
-#define M_LN2  0.693147180559945309417232121458176568
+#define M_LN2 0.693147180559945309417232121458176568
 #endif
 
-float myexp(float x) {
+float myexp(float x)
+{
   /* Your code here */
-  
-  return 0.0;
+  int m = (int)(M_LOG2E * x);
+  float u = x - m * M_LN2;
+
+  // Compute e^u using the smallest_n found earlier (you can hard-code this value)
+  float e_u = 1.0;  // Initialize to the last coefficient of the polynomial
+  int smallest_n = 7;  // Replace with the smallest_n you found using rerr.c
+
+  for (int n = smallest_n; n >= 1; n--) {
+      e_u = 1 + (u/n)*e_u;
+  }
+
+  // Compute 2^m
+  float two_m = ldexpf(1, m);
+
+  return (float)(two_m * e_u);
 }
 
-int main(int argc, char *argv[]) {
-  if (argc != 2) {
+int main(int argc, char *argv[])
+{
+  if (argc != 2)
+  {
     fprintf(stderr, "usage: %s <number>\n", argv[0]);
     exit(1);
   }
