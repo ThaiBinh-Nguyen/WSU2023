@@ -12,9 +12,10 @@
 
 float myexp(float x)
 {
-  /* Your code here */
-  int m = (int)(M_LOG2E * x);
-  float u = x - m * M_LN2;
+  float z = x / M_LN2;
+  int m = round(z);
+  float w = z - m;
+  float u = w*M_LN2;
 
   // Compute e^u using the smallest_n found earlier (you can hard-code this value)
   float e_u = 1.0;  // Initialize to the last coefficient of the polynomial
