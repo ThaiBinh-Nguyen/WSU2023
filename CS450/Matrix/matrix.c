@@ -40,56 +40,37 @@ double calculateDeterminant(double **matrix, int size) {
 }
 
 int main() {
-    FILE *file = fopen("project1_key.txt", "r");
-
-    char line[100];
-    int matrixSize = -1;
+    int matrixSize;
     double **matrix = NULL;
 
-    while (fgets(line, sizeof(line), file) != NULL) {
-        if (strstr(line, "input:") != NULL) {
-            // Free memory for the previous matrix, if any
-            if (matrix != NULL) {
-                double det = calculateDeterminant(matrix, matrixSize);
-                printf("Determinant is: %.0lf\n", det);
+    // Read the size of the first matrix
+    scanf("%d", &matrixSize);
 
-                // Free memory for the current matrix
-                for (int i = 0; i < matrixSize; i++) {
-                    free(matrix[i]);
-                }
-                free(matrix);
-            }
+    // Consume the trailing newline character
+    getchar();
 
-            // Read matrix size from the file
-            fscanf(file, "%d", &matrixSize);
+    // Initialize the matrix
+    matrix = (double **)malloc(matrixSize * sizeof(double *));
+    for (int i = 0; i < matrixSize; i++) {
+        matrix[i] = (double *)malloc(matrixSize * sizeof(double));
+    }
 
-            // Initialize the matrix
-            matrix = (double **)malloc(matrixSize * sizeof(double *));
-            for (int i = 0; i < matrixSize; i++) {
-                matrix[i] = (double *)malloc(matrixSize * sizeof(double));
-            }
-
-            // Read data for the matrix
-            for (int i = 0; i < matrixSize; i++) {
-                for (int j = 0; j < matrixSize; j++) {
-                    fscanf(file, "%lf", &matrix[i][j]);
-                }
-            }
+    // Read data for the matrix
+    for (int i = 0; i < matrixSize; i++) {
+        for (int j = 0; j < matrixSize; j++) {
+            scanf("%lf", &matrix[i][j]);
         }
     }
 
-    // Calculate and print determinant for the last matrix
-    if (matrix != NULL) {
-        double det = calculateDeterminant(matrix, matrixSize);
-        printf("Determinant is: %.0lf\n", det);
+    // Calculate and print the determinant of the matrix
+    double det = calculateDeterminant(matrix, matrixSize);
+    printf("%.0lf\n", det);
 
-        // Free memory for the last matrix
-        for (int i = 0; i < matrixSize; i++) {
-            free(matrix[i]);
-        }
-        free(matrix);
+    // Free the memory
+    for (int i = 0; i < matrixSize; i++) {
+        free(matrix[i]);
     }
+    free(matrix);
 
-    fclose(file);
     return 0;
 }
