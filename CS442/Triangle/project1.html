@@ -6,124 +6,124 @@
 
 <!DOCTYPE html>
 <html>
-<!-- Applying styles for the canvas -->
-<style>
-    #the-canvas {
-        border: 1px solid darkblue;
-    }
-</style>
+    <!-- Applying styles for the canvas -->
+    <style>
+        #the-canvas {
+            border: 1px solid darkblue;
+        }
+    </style>
 
-<head>
-    <title>Project 1: Shapes and Colors</title>
-</head>
+    <head>
+        <title>Project 1: Shapes and Colors</title>
+    </head>
 
-<body>
-    <!-- Defining a canvas element with id 'the-canvas' -->
-    <canvas id="the-canvas" width="800" height="600"></canvas>
-    <script>
-        // Adding the canvas
-        let canvas = document.getElementById('the-canvas');
+    <body>
+        <!-- Defining a canvas element with id 'the-canvas' -->
+        <canvas id="the-canvas" width="800" height="600"></canvas>
+        <script>
+            // Add the canvas
+            let canvas = document.getElementById('the-canvas');
 
-        // Initializing WebGL2 rendering context
-        /** @type {WebGLRenderingContext} */
-        let gl = canvas.getContext('webgl2');
+            // Initializing WebGL2 rendering context
+            /** @type {WebGLRenderingContext} */
+            let gl = canvas.getContext('webgl2');
 
-        // Vertices and colors data of 2 triangles
-        let verts = [
-            // format: x, y, r, g, b, a
-            
-            // The first triangle
+            // Vertices and colors data of 2 triangles
+            let verts = [
+                // format: x, y, r, g, b, a
+                
+                // The first triangle
 
-            -0.5, -0.5, 0.5, 1, 0, 0, 1, // Bottom left vertex (Red)
-            0.5, -0.5, 0.5, 0, 1, 0, 1,  // Bottom right vertex (Green)
-            0.5, 0.5, 0.5, 0, 0, 1, 1,  // Top right vertex (Blue)
+                -0.5, -0.5, 0.5, 1, 0, 0, 1, // Bottom left vertex (Red)
+                0.5, -0.5, 0.5, 0, 1, 0, 1,  // Bottom right vertex (Green)
+                0.5, 0.5, 0.5, 0, 0, 1, 1,  // Top right vertex (Blue)
 
-            // The second triangle
+                // The second triangle
 
-            -0.5, -0.5, 0.5, 1, 0, 0, 1, // Bottom left vertex (Red)
-            0.5, 0.5, 0.5, 0, 0, 1, 1,  // Top right vertex (Blue)
-            -0.5, 0.5, 0.5, 1, 1, 0, 1  // Top left vertex (Yellow)
-        ];
+                -0.5, -0.5, 0.5, 1, 0, 0, 1, // Bottom left vertex (Red)
+                0.5, 0.5, 0.5, 0, 0, 1, 1,  // Top right vertex (Blue)
+                -0.5, 0.5, 0.5, 1, 1, 0, 1  // Top left vertex (Yellow)
+            ];
 
 
-        // Creating a buffer for the vertices
-        let vertex_buffer = gl.createBuffer();
+            // Creating a buffer for the vertices
+            let vertex_buffer = gl.createBuffer();
 
-        // Binding the buffer to WebGL context
-        gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
+            // Binding the buffer to WebGL context
+            gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
 
-        // Filling the buffer with vertices data
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
+            // Filling the buffer with vertices data
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
 
-        // Unbinding the buffer
-        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+            // Unbinding the buffer
+            gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
-        // Clearing the canvas with specific color
-        gl.clearColor(128 / 255, 204 / 255, 255 / 255, 1);
-        gl.clear(gl.COLOR_BUFFER_BIT);
+            // Clearing the canvas with specific color
+            gl.clearColor(128 / 255, 204 / 255, 255 / 255, 1);
+            gl.clear(gl.COLOR_BUFFER_BIT);
 
-        // Console logs for debugging
-        console.log('Hello, world!');
-        console.log(canvas);
-        console.log(gl);
+            // Console logs for debugging
+            console.log('Hello, world!');
+            console.log(canvas);
+            console.log(gl);
 
-        // Vertex Shader source code
-        let vertex_source =
-            `#version 300 es
-            precision mediump float;
-            in vec3 coordinates;
-            in vec4 color;
-            out vec4 v_color;
-            void main( void ) {
-                gl_Position = vec4( coordinates, 1.0 );
-                v_color = color;
-            }`;
+            // Vertex Shader source code
+            let vertex_source =
+                `#version 300 es
+                precision mediump float;
+                in vec3 coordinates;
+                in vec4 color;
+                out vec4 v_color;
+                void main( void ) {
+                    gl_Position = vec4( coordinates, 1.0 );
+                    v_color = color;
+                }`;
 
-        // Fragment Shader source code
-        let fragment_source =
-            `#version 300 es
-            precision mediump float;
-            in vec4 v_color;
-            out vec4 f_color;
-            void main( void ) {
-                f_color = v_color;
-            }`;
+            // Fragment Shader source code
+            let fragment_source =
+                `#version 300 es
+                precision mediump float;
+                in vec4 v_color;
+                out vec4 f_color;
+                void main( void ) {
+                    f_color = v_color;
+                }`;
 
-        // Creating the Vertex and Fragment shaders
-        let vert_shader = gl.createShader(gl.VERTEX_SHADER);
-        let frag_shader = gl.createShader(gl.FRAGMENT_SHADER);
+            // Creating the Vertex and Fragment shaders
+            let vert_shader = gl.createShader(gl.VERTEX_SHADER);
+            let frag_shader = gl.createShader(gl.FRAGMENT_SHADER);
 
-        // Providing the source code to shaders
-        gl.shaderSource(vert_shader, vertex_source);
-        gl.shaderSource(frag_shader, fragment_source);
+            // Providing the source code to shaders
+            gl.shaderSource(vert_shader, vertex_source);
+            gl.shaderSource(frag_shader, fragment_source);
 
-        // Compiling the shaders
-        gl.compileShader(vert_shader);
-        gl.compileShader(frag_shader);
+            // Compiling the shaders
+            gl.compileShader(vert_shader);
+            gl.compileShader(frag_shader);
 
-        // Creating a shader program and linking shaders to it
-        let shader_program = gl.createProgram();
-        gl.attachShader(shader_program, vert_shader);
-        gl.attachShader(shader_program, frag_shader);
-        gl.linkProgram(shader_program);
+            // Creating a shader program and linking shaders to it
+            let shader_program = gl.createProgram();
+            gl.attachShader(shader_program, vert_shader);
+            gl.attachShader(shader_program, frag_shader);
+            gl.linkProgram(shader_program);
 
-        // Using the created program
-        gl.useProgram(shader_program);
+            // Using the created program
+            gl.useProgram(shader_program);
 
-        // Binding the buffer again
-        gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
+            // Binding the buffer again
+            gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
 
-        // Getting attribute locations and enabling them
-        let atr_coord = gl.getAttribLocation(shader_program, "coordinates");
-        let atr_color = gl.getAttribLocation(shader_program, "color");
-        gl.vertexAttribPointer(atr_coord, 3, gl.FLOAT, false, 28, 0);
-        gl.vertexAttribPointer(atr_color, 4, gl.FLOAT, false, 28, 12);
-        gl.enableVertexAttribArray(atr_coord);
-        gl.enableVertexAttribArray(atr_color);
+            // Getting attribute locations and enabling them
+            let atr_coord = gl.getAttribLocation(shader_program, "coordinates");
+            let atr_color = gl.getAttribLocation(shader_program, "color");
+            gl.vertexAttribPointer(atr_coord, 3, gl.FLOAT, false, 28, 0);
+            gl.vertexAttribPointer(atr_color, 4, gl.FLOAT, false, 28, 12);
+            gl.enableVertexAttribArray(atr_coord);
+            gl.enableVertexAttribArray(atr_color);
 
-        // Drawing the triangles
-        gl.drawArrays(gl.TRIANGLES, 0, 6);
-    </script>
-</body>
+            // Drawing the triangles
+            gl.drawArrays(gl.TRIANGLES, 0, 6);
+        </script>
+    </body>
 
 </html>
