@@ -1,3 +1,10 @@
+/* Full Name: Thai Binh Nguyen
+   Course: CS330
+   Project 1: Computing e^x
+   Date: 09-12-2023
+*/
+
+
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
