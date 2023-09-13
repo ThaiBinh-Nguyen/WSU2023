@@ -5,7 +5,7 @@
 */
 
 /* Identifies the project:
-  My Project will compute funtion f(x) = e^x using C programming language. 
+  My Project will compute funtion f(x) = e^x using C programming language.
    There are 2 main parts for this project.
    1. myexp(): A program that calculates e^x using Taylor Series method combined with the range reduction technique.
    2. rerr(): A program that finds the smallest value of n
@@ -32,19 +32,19 @@
 
 float myexp(float x)
 {
-  float z = x / M_LN2; //Find z
-  int m = round(z); //Find m
-  float w = z - m; //Find w
-  float u = w*M_LN2; //Find u
+  float z = x / M_LN2; // Find z
+  int m = round(z);    // Find m
+  float w = z - m;     // Find w
+  float u = w * M_LN2; // Find u
 
   // Compute e^u using the smallest_n found earlier (you can hard-code this value)
-  float e_u = 1.0;  // Initialize to the last coefficient of the polynomial
-  int smallest_n = 7;  // Replace with the smallest_n you found using rerr.c
+  float e_u = 1.0;    // Initialize to the last coefficient of the polynomial
+  int smallest_n = 7; // Replace with the smallest_n you found using rerr.c
 
-
-  //The Taylor Series to comptute e^x
-  for (int n = smallest_n; n >= 1; n--) {
-      e_u = 1 + (u/n)*e_u;
+  // The Taylor Series to comptute e^x
+  for (int n = smallest_n; n >= 1; n--)
+  {
+    e_u = 1 + (u / n) * e_u;
   }
 
   // Compute 2^m
