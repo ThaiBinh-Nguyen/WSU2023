@@ -1,4 +1,5 @@
 
+const { Vec4 } = require('./vector_template.js');
 /**
  * Matrix with row-major layout:
  *  0       1       2       3
@@ -45,6 +46,16 @@ class Mat4 {
     static rotation_xy( turns ) {
         
         // return the rotation matrix
+        const angle = 2 * Math.PI * turns;
+        const c = Math.cos(angle);
+        const s = Math.sin(angle);
+        return new Mat4([
+            c, -s, 0, 0,
+            s,  c, 0, 0,
+            0,  0, 1, 0,
+            0,  0, 0, 1
+        ]);
+
     }
 
     /**
@@ -55,6 +66,15 @@ class Mat4 {
     static rotation_xz( turns ) {
 
         // return the rotation matrix
+        const angle = 2 * Math.PI * turns;
+        const c = Math.cos(angle);
+        const s = Math.sin(angle);
+        return new Mat4([
+            c, 0,  s, 0,
+            0, 1,  0, 0,
+           -s, 0,  c, 0,
+            0, 0,  0, 1
+        ]);
     }
 
     /**
@@ -65,21 +85,53 @@ class Mat4 {
     static rotation_yz( turns ) {
         
         // return the rotation matrix
+        const angle = 2 * Math.PI * turns;
+        const c = Math.cos(angle);
+        const s = Math.sin(angle);
+        return new Mat4([
+            1, 0,  0, 0,
+            0, c, -s, 0,
+            0, s,  c, 0,
+            0, 0,  0, 1
+        ]);
     }
 
     static translation( dx, dy, dz ) {
         
         // return the translation matrix
+        return new Mat4([
+            1, 0, 0, dx,
+            0, 1, 0, dy,
+            0, 0, 1, dz,
+            0, 0, 0, 1
+        ]);
     }
 
     static scale( sx, sy, sz ) {
         
         // return the scaling matrix
+        return new Mat4([
+            sx, 0,  0,  0,
+            0,  sy, 0,  0,
+            0,  0,  sz, 0,
+            0,  0,  0,  1
+        ]);
     }
 
     mul( right ) {
         
         // return the result of multiplication
+        const result = [];
+        for (let row = 0; row < 4; row++) {
+            for (let col = 0; col < 4; col++) {
+                let sum = 0;
+                for (let k = 0; k < 4; k++) {
+                    sum += this.rc(row, k) * right.rc(k, col);
+                }
+                result.push(sum);
+            }
+        }
+        return new Mat4(result);
     }
 
 	// right multiply by column vector
@@ -90,6 +142,14 @@ class Mat4 {
     transform_vec( vec ) {
         
         // return the transformed vector
+        const { x, y, z, w } = vec; // Assuming vec is an object of Vec4
+        const result = [
+            this.rc(0, 0) * x + this.rc(0, 1) * y + this.rc(0, 2) * z + this.rc(0, 3) * w,
+            this.rc(1, 0) * x + this.rc(1, 1) * y + this.rc(1, 2) * z + this.rc(1, 3) * w,
+            this.rc(2, 0) * x + this.rc(2, 1) * y + this.rc(2, 2) * z + this.rc(2, 3) * w,
+            this.rc(3, 0) * x + this.rc(3, 1) * y + this.rc(3, 2) * z + this.rc(3, 3) * w,
+        ];
+        return new Vec4(...result);
     }
 
 
@@ -213,3 +273,5 @@ class Mat4 {
 		return pieces.join( ' ' );
 	}
 }
+
+module.exports = { Mat4 };

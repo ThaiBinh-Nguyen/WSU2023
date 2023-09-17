@@ -16,6 +16,7 @@ class Vec4 {
     scaled( by ) {
         
         // return the new vector
+        return new Vec4(this.x * by, this.y * by, this.z * by, this.w * by);
     }
 
     /**
@@ -26,6 +27,7 @@ class Vec4 {
     dot( other ) {
         
         // return the dot product 
+        return this.x * other.x + this.y * other.y + this.z * other.z + this.w * other.w;
     }
 
     /**
@@ -35,6 +37,7 @@ class Vec4 {
     length() {
         
         // return the length
+        return Math.sqrt(this.dot(this));
     }
 
     /**
@@ -44,6 +47,9 @@ class Vec4 {
     norm() {
         
         // return the normalized vector
+        const length = this.length();
+        if (length === 0) return new Vec4(0, 0, 0, 0);
+        return this.scaled(1 / length);
     }
 
     /**
@@ -53,6 +59,12 @@ class Vec4 {
     add( other ) {
         
         // return the vector sum
+        return new Vec4(
+            this.x + other.x,
+            this.y + other.y,
+            this.z + other.z,
+            this.w + other.w
+        );
     }
 
     sub( other ) {
@@ -71,3 +83,5 @@ class Vec4 {
 		return [ '[', this.x, this.y, this.z, this.w, ']' ].join( ' ' );
 	}
 }
+
+module.exports = { Vec4 };
