@@ -70,13 +70,8 @@ int main(){
 
     //Calculate and prunt the Determinant of the Matrix
     double determinant = Find_Determinant(Matrix, Size_of_Matrix_N);
+    printf("%.2lf\n",determinant);
 
-    if(determinant == (int)determinant){
-        printf("%d\n", (int)determinant);
-    }
-    else{
-        printf("%.2lf\n",determinant);
-    }
 
     //Free the memory of the Matrix
     for(int i = 0; i < Size_of_Matrix_N; i++){
