@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <limits.h>
+
 
 #define NUM_SKILLS 5
 
@@ -9,73 +11,29 @@ int compare(const void *a, const void *b) {
     return *((int*)b) - *((int*)a);
 }
 
-// int partition(int arr[], int low, int high) {
-//     int pivot = arr[high];
-//     int i = (low - 1);
-//     for (int j = low; j <= high - 1; j++) {
-//         // Thay đổi điều kiện so sánh ở đây
-//         if (arr[j] >= pivot) {
-//             i++;
-//             int temp = arr[i];
-//             arr[i] = arr[j];
-//             arr[j] = temp;
-//         }
-//     }
-//     int temp = arr[i + 1];
-//     arr[i + 1] = arr[high];
-//     arr[high] = temp;
-//     return (i + 1);
-// }
-
-
-
-
-// void quickSort(int arr[], int low, int high) {
-//     if (low < high) {
-//         int pi = partition(arr, low, high);
-//         quickSort(arr, low, pi - 1);
-//         quickSort(arr, pi + 1, high);
-//     }
-// }
-
-void countingSort(int array[], int size, int place) {
-  int output[size + 1];
-  int max = array[0];
-  for (int i = 1; i < size; i++) {
-    if (array[i] > max)
-      max = array[i];
-  }
-  int count[max + 1];
-
-  for (int i = 0; i <= max; ++i) {
-    count[i] = 0;
-  }
-  for (int i = 0; i < size; i++) {
-    count[(array[i] / place) % 10]++;
-  }
-  for (int i = 1; i <= max; i++) {
-    count[i] += count[i - 1];
-  }
-  for (int i = size - 1; i >= 0; i--) {
-    output[count[(array[i] / place) % 10] - 1] = array[i];
-    count[(array[i] / place) % 10]--;
-  }
-  for (int i = 0; i < size; i++) {
-    array[i] = output[i];
-  }
+int partition(int arr[], int low, int high) {
+    int pivot = arr[high];
+    int i = (low - 1);
+    for (int j = low; j <= high - 1; j++) {
+        if (arr[j] >= pivot) {  // Thay đổi tại đây để sắp xếp theo thứ tự giảm dần
+            i++;
+            int temp = arr[i];
+            arr[i] = arr[j];
+            arr[j] = temp;
+        }
+    }
+    int temp = arr[i + 1];
+    arr[i + 1] = arr[high];
+    arr[high] = temp;
+    return (i + 1);
 }
-
-void radixsort(int array[], int size) {
-  int max = array[0];
-  for (int i = 1; i < size; i++) {
-    if (array[i] > max)
-      max = array[i];
-  }
-  for (int place = 1; max / place > 0; place *= 10) {
-    countingSort(array, size, place);
-  }
+void quickSort(int arr[], int low, int high) {
+    if (low < high) {
+        int pi = partition(arr, low, high);
+        quickSort(arr, low, pi - 1);
+        quickSort(arr, pi + 1, high);
+    }
 }
-
 
 int main(int argc, char *argv[]) {
     struct timespec start, end;  // Declare timespec variables for timing
@@ -87,11 +45,9 @@ int main(int argc, char *argv[]) {
 
         // Mở rộng mảng để đọc thêm thông tin người chơi
         skills = (int *)realloc(skills, (n + 1) * NUM_SKILLS * sizeof(int));
-
-        // Kiểm tra việc cấp phát bộ nhớ có thành công hay không
-        if (skills == NULL) {
-            // Xử lý lỗi ở đây
-            exit(1);
+        if(skills == NULL) {
+        fprintf(stderr, "Memory allocation failed.\n");
+        exit(1);
         }
 
         // Đọc thông tin kỹ năng
@@ -106,15 +62,15 @@ int main(int argc, char *argv[]) {
         // ...
 
         if (!flag) {
-           // printf("Thoát khỏi vòng lặp.\n"); // Thêm dòng này
+            //printf("Thoát khỏi vòng lặp.\n"); // Thêm dòng này
             break;
         }
 
-        printf("Đọc thông tin cho người chơi số %d.\n", n); // Thêm dòng này
+        //printf("Đọc thông tin cho người chơi số %d.\n", n); // Thêm dòng này
         n++;
 
     }
-
+    
     // Khai báo và cấp phát mảng sorted
     int *sorted = (int *)malloc(n * sizeof(int)); 
 
@@ -123,7 +79,6 @@ int main(int argc, char *argv[]) {
         // Xử lý lỗi ở đây
         exit(1);
     }
-
 
     if (strcmp(argv[1], "standard") == 0) {
         const char *skill_names[] = {"SKILL_BREAKDANCING", "SKILL_APICULTURE", "SKILL_BASKET", "SKILL_XBASKET", "SKILL_SWORD", "TOTAL_XP"};
@@ -154,7 +109,7 @@ int main(int argc, char *argv[]) {
 
             printf("\n");
         }
-    } else {
+    } else if (strcmp(argv[1], "custom") == 0) {
         const char *skill_names[] = {"SKILL_BREAKDANCING", "SKILL_APICULTURE", "SKILL_BASKET", "SKILL_XBASKET", "SKILL_SWORD", "TOTAL_XP"};
 
         for (int skill = 0; skill <= NUM_SKILLS; ++skill) {
@@ -172,8 +127,9 @@ int main(int argc, char *argv[]) {
                 }
             }
 
-            //quickSort(sorted, 0, n-1);
-            radixsort(sorted, n);
+            // Gọi hàm myradixsort với tham số local_max để tối ưu hóa thuật toán
+            //myradixsort(sorted, n, local_max); // Chú ý rằng bạn cần chỉnh sửa hàm myradixsort để nó nhận thêm tham số này
+            quickSort(sorted, 0, n - 1);
             clock_gettime(CLOCK_MONOTONIC, &end);
 
             long time_in_micros = (end.tv_sec - start.tv_sec) * 1000000 + (end.tv_nsec - start.tv_nsec) / 1000;
