@@ -12,6 +12,7 @@ int compare(const void *a, const void *b) {
 }
 // Hoare partition function
 int hoare_partition(int arr[], int low, int high) {
+    
     int pivot = arr[low];
     int i = low - 1;
     int j = high + 1;
@@ -46,7 +47,6 @@ void hoare_quick_sort(int arr[], int low, int high) {
 
 
 int main(int argc, char *argv[]) {
-    struct timespec start, end;  // Declare timespec variables for timing
     int *skills = NULL; // Khởi tạo mảng skills với NULL
     int n = 0; // Số người chơi
 
@@ -98,45 +98,42 @@ int main(int argc, char *argv[]) {
                     sorted[i] += skills[i * NUM_SKILLS + j];
                 }
             }
+        }   
+        
+        struct timespec start, end;
+        long time_in_micros;
+
+        if (strcmp(argv[1], "standard") == 0) {
+            clock_gettime(CLOCK_MONOTONIC, &start);
+            qsort(sorted, n, sizeof(int), compare);
+            clock_gettime(CLOCK_MONOTONIC, &end);
+
+            time_in_micros = (end.tv_sec - start.tv_sec) * 1000000 + (end.tv_nsec - start.tv_nsec) / 1000;
+
+            // Print sorted values
+            for (int i = 0; i < n; ++i) {
+                printf("%d\n", sorted[i]);
+            }
+            printf("time taken: %ld microseconds\n", time_in_micros);
+            printf("\n");
+
+        } else if (strcmp(argv[1], "custom") == 0) {
+            // Khởi tạo thuật toán của riêng bạn tại đây
+
+            clock_gettime(CLOCK_MONOTONIC, &start);
+            hoare_quick_sort(sorted, 0, n - 1);
+            clock_gettime(CLOCK_MONOTONIC, &end);
+
+            time_in_micros = (end.tv_sec - start.tv_sec) * 1000000 + (end.tv_nsec - start.tv_nsec) / 1000;
+
+            // Print sorted values
+            for (int i = 0; i < n; ++i) {
+                printf("%d\n", sorted[i]);
+            }
+            printf("time taken: %ld microseconds\n", time_in_micros);
+            printf("\n");
         }
-    }   
-    // Sort and print based on command-line argument
-    struct timespec start, end;
-    long time_in_micros;
-    if (strcmp(argv[1], "standard") == 0) {
-        clock_gettime(CLOCK_MONOTONIC, &start);
-        qsort(sorted, n, sizeof(int), compare);
-        clock_gettime(CLOCK_MONOTONIC, &end);
-
-        time_in_micros = (end.tv_sec - start.tv_sec) * 1000000 + (end.tv_nsec - start.tv_nsec) / 1000;
-
-
-        // Print sorted values
-        for (int i = 0; i < n; ++i) {
-            printf("%d\n ", sorted[i]);
-        }
-        printf("\n");
-        printf("time taken: %ld microseconds\n", time_in_micros);
-        printf("\n");
-
-    } else if (strcmp(argv[1], "custom") == 0) {
-        // Khởi tạo thuật toán của riêng bạn tại đây
-
-        clock_gettime(CLOCK_MONOTONIC, &start);
-        hoare_quick_sort(sorted, 0, n - 1);
-        clock_gettime(CLOCK_MONOTONIC, &end);
-
-        time_in_micros = (end.tv_sec - start.tv_sec) * 1000000 + (end.tv_nsec - start.tv_nsec) / 1000;
-
-        // Print sorted values
-        for (int i = 0; i < n; ++i) {
-            printf("%d\n ", sorted[i]);
-        }
-        printf("\n");
-        printf("Custom sort time taken: %ld microseconds\n", time_in_micros);
-        printf("\n");
-
-        }
+    }
         
     // Giải phóng bộ nhớ
 
