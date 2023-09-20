@@ -36,15 +36,27 @@ int hoare_partition(int arr[], int low, int high) {
     }
 }
 
-void tail_recursive_quick_sort(int arr[], int low, int high) {
-    while (low < high) {
+// Hoare Quick Sort function
+void iterative_quick_sort(int arr[], int low, int high) {
+    int stack[high - low + 1];
+    int top = -1;
+
+    stack[++top] = low;
+    stack[++top] = high;
+
+    while (top >= 0) {
+        high = stack[top--];
+        low = stack[top--];
+
         int p = hoare_partition(arr, low, high);
-        if (p - low < high - p) {
-            tail_recursive_quick_sort(arr, low, p);
-            low = p + 1;
-        } else {
-            tail_recursive_quick_sort(arr, p + 1, high);
-            high = p;
+
+        if (p - 1 > low) {
+            stack[++top] = low;
+            stack[++top] = p;
+        }
+        if (p + 1 < high) {
+            stack[++top] = p + 1;
+            stack[++top] = high;
         }
     }
 }
@@ -126,7 +138,7 @@ int main(int argc, char *argv[]) {
             // Khởi tạo thuật toán của riêng bạn tại đây
 
             clock_gettime(CLOCK_MONOTONIC, &start);
-            tail_recursive_quick_sort(sorted, 0, n - 1);
+            iterative_quick_sort(sorted, 0, n - 1);
             clock_gettime(CLOCK_MONOTONIC, &end);
 
             time_in_micros = (end.tv_sec - start.tv_sec) * 1000000 + (end.tv_nsec - start.tv_nsec) / 1000;
