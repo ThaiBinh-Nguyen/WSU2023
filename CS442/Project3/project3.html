@@ -49,11 +49,12 @@
             let vertex_source =
                 `#version 300 es
                 precision mediump float;
+                uniform mat4 modelview; // this is the matrix
                 in vec3 coordinates;
                 in vec4 color;
                 out vec4 v_color;
                 void main( void ) {
-                    gl_Position = vec4( coordinates, 1.0 );
+                    gl_Position = modelview * vec4( coordinates, 1.0 );
                     v_color = color;
                  }`;
 
@@ -100,10 +101,89 @@
             gl.enableVertexAttribArray(atr_coord);
             gl.enableVertexAttribArray(atr_color);
 
-            // Clear and draw
-            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-            gl.bindBuffer( gl.ARRAY_BUFFER, vertex_buffer );
-            gl.drawArrays(gl.TRIANGLES, 0, 3);
+            function rotation_xy(angle) {
+                let cosAngle = Math.cos(angle);
+                let sinAngle = Math.sin(angle);
+                return [
+                    cosAngle, -sinAngle, 0, 0,
+                    sinAngle, cosAngle, 0, 0,
+                    0, 0, 1, 0,
+                    0, 0, 0, 1
+                ];
+            }
+            
+            function rotation_xz(angle) {
+                let cosAngle = Math.cos(angle);
+                let sinAngle = Math.sin(angle);
+                return [
+                    cosAngle, 0, sinAngle, 0,
+                    0, 1, 0, 0,
+                    -sinAngle, 0, cosAngle, 0,
+                    0, 0, 0, 1
+                ];
+            }
+            
+            function rotation_yz(angle) {
+                let cosAngle = Math.cos(angle);
+                let sinAngle = Math.sin(angle);
+                return [
+                    1, 0, 0, 0,
+                    0, cosAngle, -sinAngle, 0,
+                    0, sinAngle, cosAngle, 0,
+                    0, 0, 0, 1
+                ];
+            }
+
+            function multiplyMatrices(a, b) {
+                let result = new Float32Array(16);
+                for (let i = 0; i < 4; i++) {
+                    for (let j = 0; j < 4; j++) {
+                        result[i * 4 + j] = 0.0;
+                        for (let k = 0; k < 4; k++) {
+                            result[i * 4 + j] += a[i * 4 + k] * b[k * 4 + j];
+                        }
+                    }
+                }
+                return result;
+            }
+
+            function set_uniform_matrix4(gl, program, name, data) {
+                const loc = gl.getUniformLocation(program, name);
+                gl.uniformMatrix4fv(loc, false, data);
+            }
+            
+            
+            
+
+            function render(now) {
+                requestAnimationFrame(render); // Gọi lại hàm render
+            
+                // Tính toán góc xoay dựa trên thời gian
+                let angleXY = now * 0.001 * 0.25; // 0.25 vòng mỗi giây
+                let angleXZ = now * 0.001 * 0.5;  // 0.5 vòng mỗi giây
+                let angleYZ = now * 0.001 * 0.05; // 0.05 vòng mỗi giây
+            
+                // Tính toán từng ma trận xoay
+                let matrixXY = rotation_xy(angleXY);
+                let matrixXZ = rotation_xz(angleXZ);
+                let matrixYZ = rotation_yz(angleYZ);
+            
+                // Kết hợp các ma trận lại với nhau để có được ma trận xoay cuối cùng
+                // (Giả sử bạn có một hàm để nhân các ma trận)
+                let finalMatrix = multiplyMatrices(multiplyMatrices(matrixXY, matrixXZ), matrixYZ);
+            
+                // Áp dụng ma trận xoay vào shader
+                set_uniform_matrix4(gl, shader_program, "modelview", finalMatrix); 
+            
+                // Vẽ đối tượng
+                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+                gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
+                gl.drawArrays(gl.TRIANGLES, 0, 3);
+            }
+            
+            // Khởi chạy hàm render lần đầu tiên để bắt đầu vòng lặp
+            requestAnimationFrame(render);
+            
         </script>
     </body>
 
