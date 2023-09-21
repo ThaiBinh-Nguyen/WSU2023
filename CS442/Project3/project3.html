@@ -26,6 +26,10 @@
             /** @type {WebGLRenderingContext} */
             let gl = canvas.getContext('webgl2');
             
+            let rotationXY = 0.0;
+            let rotationXZ = 0.0;
+            let rotationYZ = 0.0;
+
             // Vertex data
             let verts = [
                 //Create your triangle here
@@ -49,11 +53,12 @@
             let vertex_source =
                 `#version 300 es
                 precision mediump float;
+                uniform mat4 modelview; // this is the matrix
                 in vec3 coordinates;
                 in vec4 color;
                 out vec4 v_color;
                 void main( void ) {
-                    gl_Position = vec4( coordinates, 1.0 );
+                    gl_Position = modelview * vec4( coordinates, 1.0 );
                     v_color = color;
                  }`;
 
@@ -100,10 +105,31 @@
             gl.enableVertexAttribArray(atr_coord);
             gl.enableVertexAttribArray(atr_color);
 
-            // Clear and draw
-            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-            gl.bindBuffer( gl.ARRAY_BUFFER, vertex_buffer );
-            gl.drawArrays(gl.TRIANGLES, 0, 3);
+            function render(now) {
+                requestAnimationFrame(render); // call me again
+                
+                // Update rotation variables
+                rotationXY += 0.25 * 2.0 * Math.PI / 60.0;
+                rotationXZ += 0.5 * 2.0 * Math.PI / 60.0;
+                rotationYZ += 0.05 * 2.0 * Math.PI / 60.0;
+                
+                // Calculate and set rotation matrix
+                let modelviewMatrix = mat4.create(); // Use gl-matrix library
+                mat4.rotate(modelviewMatrix, modelviewMatrix, rotationXY, [0, 1, 0]);
+                mat4.rotate(modelviewMatrix, modelviewMatrix, rotationXZ, [1, 0, 0]);
+                mat4.rotate(modelviewMatrix, modelviewMatrix, rotationYZ, [0, 0, 1]);
+                
+                // Get uniform location and set the matrix
+                let u_modelview = gl.getUniformLocation(shader_program, "modelview");
+                gl.uniformMatrix4fv(u_modelview, false, modelviewMatrix);
+            
+                // Clear and draw
+                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+                gl.drawArrays(gl.TRIANGLES, 0, 3);
+            }
+            
+            // Start the animation
+            render();
         </script>
     </body>
 
