@@ -158,39 +158,45 @@
             let rotation_amnt_xy = 0.0;
             let rotation_amnt_xz = 0.0;
             let rotation_amnt_yz = 0.0;
-            // Biến toàn cục để lưu trữ thời gian cập nhật cuối cùng
-
             let last_update = performance.now();
+            
             function render(now) {
                 requestAnimationFrame(render); // Gọi lại hàm render
-
-                // Tính toán thời gian đã trôi qua (delta time) từ lần cập nhật cuối cùng
-                let deltaTime = now - last_update;
+            
+                // Tính delta thời gian
+                let time_delta = (now - last_update) / 1000;
+            
+                // Cập nhật lượng xoay cho từng trục
+                rotation_amnt_xy += ROTATION_SPEED_XY * time_delta;
+                rotation_amnt_xz += ROTATION_SPEED_XZ * time_delta;
+                rotation_amnt_yz += ROTATION_SPEED_YZ * time_delta;
+            
+                // Giữ lượng xoay trong khoảng từ 0 đến 1
+                rotation_amnt_xy %= 1.0;
+                rotation_amnt_xz %= 1.0;
+                rotation_amnt_yz %= 1.0;
+            
+                // Cập nhật thời gian cuối cùng đã render
                 last_update = now;
-
-                // Tính toán góc xoay cho từng trục
-                let angleXY = (deltaTime * 0.00025 * 2 * Math.PI) % (2 * Math.PI);
-                let angleXZ = (deltaTime * 0.0005 * 2 * Math.PI) % (2 * Math.PI);
-                let angleYZ = (deltaTime * 0.00005 * 2 * Math.PI) % (2 * Math.PI);
-
-                // Tính toán ma trận xoay cho từng trục
-                let matrixXY = rotation_xy(angleXY);
-                let matrixXZ = rotation_xz(angleXZ);
-                let matrixYZ = rotation_yz(angleYZ);
-
-                // Kết hợp các ma trận xoay lại với nhau
-                let combinedMatrix = multiplyMatrices(multiplyMatrices(matrixXY, matrixXZ), matrixYZ);
-
-                // Cập nhật ma trận xoay trong shader
-                set_uniform_matrix4(gl, shader_program, "modelview", combinedMatrix);
-
-                // Tiếp tục vẽ tam giác
+            
+                // Tính toán từng ma trận xoay
+                let matrixXY = rotation_xy(rotation_amnt_xy);
+                let matrixXZ = rotation_xz(rotation_amnt_xz);
+                let matrixYZ = rotation_yz(rotation_amnt_yz);
+            
+                // Kết hợp các ma trận lại với nhau để có được ma trận xoay cuối cùng
+                let finalMatrix = multiplyMatrices(multiplyMatrices(matrixXY, matrixXZ), matrixYZ);
+            
+                // Áp dụng ma trận xoay vào shader
+                set_uniform_matrix4(gl, shader_program, "modelview", finalMatrix);
+            
+                // Vẽ đối tượng
                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
                 gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
                 gl.drawArrays(gl.TRIANGLES, 0, 3);
             }
-
-            // Khởi tạo vòng lặp render
+            
+            // Khởi chạy hàm render lần đầu tiên để bắt đầu vòng lặp
             requestAnimationFrame(render);
             
         </script>
