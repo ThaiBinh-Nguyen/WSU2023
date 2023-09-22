@@ -105,6 +105,7 @@
             gl.enableVertexAttribArray(atr_coord);
             gl.enableVertexAttribArray(atr_color);
 
+<<<<<<< HEAD
             function render(now) {
                 requestAnimationFrame(render); // call me again
                 
@@ -130,6 +131,100 @@
             
             // Start the animation
             render();
+=======
+            function rotation_xy(angle) {
+                let cosAngle = Math.cos(angle);
+                let sinAngle = Math.sin(angle);
+                return [
+                    cosAngle, -sinAngle, 0, 0,
+                    sinAngle, cosAngle, 0, 0,
+                    0, 0, 1, 0,
+                    0, 0, 0, 1
+                ];
+            }
+            
+            function rotation_xz(angle) {
+                let cosAngle = Math.cos(angle);
+                let sinAngle = Math.sin(angle);
+                return [
+                    cosAngle, 0, sinAngle, 0,
+                    0, 1, 0, 0,
+                    -sinAngle, 0, cosAngle, 0,
+                    0, 0, 0, 1
+                ];
+            }
+            
+            function rotation_yz(angle) {
+                let cosAngle = Math.cos(angle);
+                let sinAngle = Math.sin(angle);
+                return [
+                    1, 0, 0, 0,
+                    0, cosAngle, -sinAngle, 0,
+                    0, sinAngle, cosAngle, 0,
+                    0, 0, 0, 1
+                ];
+            }
+
+            function multiplyMatrices(a, b) {
+                let result = new Float32Array(16);
+                for (let i = 0; i < 4; i++) {
+                    for (let j = 0; j < 4; j++) {
+                        result[i * 4 + j] = 0.0;
+                        for (let k = 0; k < 4; k++) {
+                            result[i * 4 + j] += a[i * 4 + k] * b[k * 4 + j];
+                        }
+                    }
+                }
+                return result;
+            }
+
+            function set_uniform_matrix4(gl, program, name, data) {
+                const loc = gl.getUniformLocation(program, name);
+                gl.uniformMatrix4fv(loc, false, data);
+            }
+
+            const ROTATION_SPEED_XY = 0.25;
+            const ROTATION_SPEED_XZ = 0.5;
+            const ROTATION_SPEED_YZ = 0.05;
+            let rotation_amnt_xy = 0.0;
+            let rotation_amnt_xz = 0.0;
+            let rotation_amnt_yz = 0.0;
+            // Biến toàn cục để lưu trữ thời gian cập nhật cuối cùng
+
+            let last_update = performance.now();
+            function render(now) {
+                requestAnimationFrame(render); // Gọi lại hàm render
+
+                // Tính toán thời gian đã trôi qua (delta time) từ lần cập nhật cuối cùng
+                let deltaTime = now - last_update;
+                last_update = now;
+
+                // Tính toán góc xoay cho từng trục
+                let angleXY = (deltaTime * 0.00025 * 2 * Math.PI) % (2 * Math.PI);
+                let angleXZ = (deltaTime * 0.0005 * 2 * Math.PI) % (2 * Math.PI);
+                let angleYZ = (deltaTime * 0.00005 * 2 * Math.PI) % (2 * Math.PI);
+
+                // Tính toán ma trận xoay cho từng trục
+                let matrixXY = rotation_xy(angleXY);
+                let matrixXZ = rotation_xz(angleXZ);
+                let matrixYZ = rotation_yz(angleYZ);
+
+                // Kết hợp các ma trận xoay lại với nhau
+                let combinedMatrix = multiplyMatrices(multiplyMatrices(matrixXY, matrixXZ), matrixYZ);
+
+                // Cập nhật ma trận xoay trong shader
+                set_uniform_matrix4(gl, shader_program, "modelview", combinedMatrix);
+
+                // Tiếp tục vẽ tam giác
+                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+                gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
+                gl.drawArrays(gl.TRIANGLES, 0, 3);
+            }
+
+            // Khởi tạo vòng lặp render
+            requestAnimationFrame(render);
+            
+>>>>>>> fd4d7dae46af335621a7b87b4310a913f1dbf02d
         </script>
     </body>
 
