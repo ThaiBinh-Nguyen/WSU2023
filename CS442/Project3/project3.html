@@ -101,50 +101,90 @@
             gl.enableVertexAttribArray(atr_coord);
             gl.enableVertexAttribArray(atr_color);
 
-            function rotation_xy(angle) {
-                let cosAngle = Math.cos(angle);
-                let sinAngle = Math.sin(angle);
-                return [
-                    cosAngle, -sinAngle, 0, 0,
-                    sinAngle, cosAngle, 0, 0,
-                    0, 0, 1, 0,
-                    0, 0, 0, 1
-                ];
-            }
+            class Mat4 {
+                constructor( data ) {
+                    if( data == null ) {
+                        this.data = [
+                            1, 0, 0, 0,
+                            0, 1, 0, 0,
+                            0, 0, 1, 0,
+                            0, 0, 0, 1,
+                        ]
+                    }
+                    else {
+                        this.data = data;
+                    }
+                }
+                /**
+                 * Returns a rotation matrix in the XY plane, rotating by the given number of turns. 
+                 * @param {number} turns amount to rotate by
+                 * @returns {Mat4}  
+                 */
+                static rotation_xy( turns ) {
+                    
+                    // return the rotation matrix
+                    const angle = 2 * Math.PI * turns;
+                    const cosAngle = Math.cos(angle);
+                    const sinAngle = Math.sin(angle);
+                    return new Mat4([
+                        cosAngle, -sinAngle, 0, 0,
+                        sinAngle, cosAngle, 0, 0,
+                        0, 0, 1, 0,
+                        0, 0, 0, 1
+                    ]);
+                }
             
-            function rotation_xz(angle) {
-                let cosAngle = Math.cos(angle);
-                let sinAngle = Math.sin(angle);
-                return [
-                    cosAngle, 0, sinAngle, 0,
-                    0, 1, 0, 0,
-                    -sinAngle, 0, cosAngle, 0,
-                    0, 0, 0, 1
-                ];
-            }
+                /**
+                 * Returns a rotation matrix in the XZ plane, rotating by the given number of turns
+                 * @param {number} turns amount to rotate by
+                 * @returns {Mat4}  
+                 */
+                static rotation_xz( turns ) {
             
-            function rotation_yz(angle) {
-                let cosAngle = Math.cos(angle);
-                let sinAngle = Math.sin(angle);
-                return [
-                    1, 0, 0, 0,
-                    0, cosAngle, -sinAngle, 0,
-                    0, sinAngle, cosAngle, 0,
-                    0, 0, 0, 1
-                ];
+                    // return the rotation matrix
+                    const angle = 2 * Math.PI * turns;
+                    const cosAngle = Math.cos(angle);
+                    const sinAngle = Math.sin(angle);
+                    return new Mat4([
+                        cosAngle, 0, sinAngle, 0,
+                        0, 1, 0, 0,
+                        -sinAngle, 0, cosAngle, 0,
+                        0, 0, 0, 1
+                    ]);
+                }
+            
+                /**
+                 * Returns a rotation matrix in the YZ plane, rotating by the given number of turns
+                 * @param {number} turns amount to rotate by
+                 * @returns {Mat4}  
+                 */
+                static rotation_yz( turns ) {
+                    
+                    // return the rotation matrix
+                    const angle = 2 * Math.PI * turns;
+                    const cosAngle = Math.cos(angle);
+                    const sinAngle = Math.sin(angle);
+                    return new Mat4([
+                        1, 0, 0, 0,
+                        0, cosAngle, -sinAngle, 0,
+                        0, sinAngle, cosAngle, 0,
+                        0, 0, 0, 1
+                    ]);
+                }
             }
 
+            // Function to multiply Mat4 objects
             function multiplyMatrices(a, b) {
                 let result = new Float32Array(16);
                 for (let i = 0; i < 4; i++) {
                     for (let j = 0; j < 4; j++) {
                         result[i * 4 + j] = 0.0;
                         for (let k = 0; k < 4; k++) {
-                            result[i * 4 + j] += a[i * 4 + k] * b[k * 4 + j];
+                            result[i * 4 + j] += a.data[i * 4 + k] * b.data[k * 4 + j];
                         }
                     }
                 }
-                return result;
+                return new Mat4(result);
             }
 
             function set_uniform_matrix4(gl, program, name, data) {
@@ -159,35 +199,44 @@
             let rotation_amnt_xz = 0.0;
             let rotation_amnt_yz = 0.0;
             let last_update = performance.now();
-            
+
             function render(now) {
-                requestAnimationFrame(render); // Gọi lại hàm render
-            
-                // Tính toán góc xoay dựa trên thời gian
-                let angleXY = now * 0.001 * 0.25; // 0.25 vòng mỗi giây
-                let angleXZ = now * 0.001 * 0.5;  // 0.5 vòng mỗi giây
-                let angleYZ = now * 0.001 * 0.05; // 0.05 vòng mỗi giây
-            
-                // Tính toán từng ma trận xoay
-                let matrixXY = rotation_xy(angleXY);
-                let matrixXZ = rotation_xz(angleXZ);
-                let matrixYZ = rotation_yz(angleYZ);
-            
-                // Kết hợp các ma trận lại với nhau để có được ma trận xoay cuối cùng
-                // (Giả sử bạn có một hàm để nhân các ma trận)
+                requestAnimationFrame(render); // Call the render function again
+
+                // Calculate time delta
+                let time_delta = (now - last_update) / 1000;
+                last_update = now;
+
+                // Update rotation amounts
+                rotation_amnt_xy += ROTATION_SPEED_XY * time_delta;
+                rotation_amnt_xz += ROTATION_SPEED_XZ * time_delta;
+                rotation_amnt_yz += ROTATION_SPEED_YZ * time_delta;
+
+                // Keep the rotation amount in the range [0, 1]
+                rotation_amnt_xy %= 1.0;
+                rotation_amnt_xz %= 1.0;
+                rotation_amnt_yz %= 1.0;
+
+                // Create rotation matrices using Mat4 class
+                let matrixXY = Mat4.rotation_xy(rotation_amnt_xy);
+                let matrixXZ = Mat4.rotation_xz(rotation_amnt_xz);
+                let matrixYZ = Mat4.rotation_yz(rotation_amnt_yz);
+
+                // Combine the matrices
                 let finalMatrix = multiplyMatrices(multiplyMatrices(matrixXY, matrixXZ), matrixYZ);
-            
-                // Áp dụng ma trận xoay vào shader
-                set_uniform_matrix4(gl, shader_program, "modelview", finalMatrix); 
-            
-                // Vẽ đối tượng
+
+                // Apply the rotation matrix to the shader
+                set_uniform_matrix4(gl, shader_program, "modelview", finalMatrix.data); 
+
+                // Draw the object
                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
                 gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
                 gl.drawArrays(gl.TRIANGLES, 0, 3);
             }
-            
-            // Khởi chạy hàm render lần đầu tiên để bắt đầu vòng lặp
+
+            // Start the render loop for the first time
             requestAnimationFrame(render);
+
             
         </script>
     </body>
