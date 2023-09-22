@@ -151,37 +151,46 @@
                 const loc = gl.getUniformLocation(program, name);
                 gl.uniformMatrix4fv(loc, false, data);
             }
-            
-            
-            
 
+            const ROTATION_SPEED_XY = 0.25;
+            const ROTATION_SPEED_XZ = 0.5;
+            const ROTATION_SPEED_YZ = 0.05;
+            let rotation_amnt_xy = 0.0;
+            let rotation_amnt_xz = 0.0;
+            let rotation_amnt_yz = 0.0;
+            // Biến toàn cục để lưu trữ thời gian cập nhật cuối cùng
+
+            let last_update = performance.now();
             function render(now) {
                 requestAnimationFrame(render); // Gọi lại hàm render
-            
-                // Tính toán góc xoay dựa trên thời gian
-                let angleXY = now * 0.001 * 0.25; // 0.25 vòng mỗi giây
-                let angleXZ = now * 0.001 * 0.5;  // 0.5 vòng mỗi giây
-                let angleYZ = now * 0.001 * 0.05; // 0.05 vòng mỗi giây
-            
-                // Tính toán từng ma trận xoay
+
+                // Tính toán thời gian đã trôi qua (delta time) từ lần cập nhật cuối cùng
+                let deltaTime = now - last_update;
+                last_update = now;
+
+                // Tính toán góc xoay cho từng trục
+                let angleXY = (deltaTime * 0.00025 * 2 * Math.PI) % (2 * Math.PI);
+                let angleXZ = (deltaTime * 0.0005 * 2 * Math.PI) % (2 * Math.PI);
+                let angleYZ = (deltaTime * 0.00005 * 2 * Math.PI) % (2 * Math.PI);
+
+                // Tính toán ma trận xoay cho từng trục
                 let matrixXY = rotation_xy(angleXY);
                 let matrixXZ = rotation_xz(angleXZ);
                 let matrixYZ = rotation_yz(angleYZ);
-            
-                // Kết hợp các ma trận lại với nhau để có được ma trận xoay cuối cùng
-                // (Giả sử bạn có một hàm để nhân các ma trận)
-                let finalMatrix = multiplyMatrices(multiplyMatrices(matrixXY, matrixXZ), matrixYZ);
-            
-                // Áp dụng ma trận xoay vào shader
-                set_uniform_matrix4(gl, shader_program, "modelview", finalMatrix); 
-            
-                // Vẽ đối tượng
+
+                // Kết hợp các ma trận xoay lại với nhau
+                let combinedMatrix = multiplyMatrices(multiplyMatrices(matrixXY, matrixXZ), matrixYZ);
+
+                // Cập nhật ma trận xoay trong shader
+                set_uniform_matrix4(gl, shader_program, "modelview", combinedMatrix);
+
+                // Tiếp tục vẽ tam giác
                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
                 gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
                 gl.drawArrays(gl.TRIANGLES, 0, 3);
             }
-            
-            // Khởi chạy hàm render lần đầu tiên để bắt đầu vòng lặp
+
+            // Khởi tạo vòng lặp render
             requestAnimationFrame(render);
             
         </script>
