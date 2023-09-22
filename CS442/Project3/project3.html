@@ -26,10 +26,6 @@
             /** @type {WebGLRenderingContext} */
             let gl = canvas.getContext('webgl2');
             
-            let rotationXY = 0.0;
-            let rotationXZ = 0.0;
-            let rotationYZ = 0.0;
-
             // Vertex data
             let verts = [
                 //Create your triangle here
@@ -105,33 +101,6 @@
             gl.enableVertexAttribArray(atr_coord);
             gl.enableVertexAttribArray(atr_color);
 
-<<<<<<< HEAD
-            function render(now) {
-                requestAnimationFrame(render); // call me again
-                
-                // Update rotation variables
-                rotationXY += 0.25 * 2.0 * Math.PI / 60.0;
-                rotationXZ += 0.5 * 2.0 * Math.PI / 60.0;
-                rotationYZ += 0.05 * 2.0 * Math.PI / 60.0;
-                
-                // Calculate and set rotation matrix
-                let modelviewMatrix = mat4.create(); // Use gl-matrix library
-                mat4.rotate(modelviewMatrix, modelviewMatrix, rotationXY, [0, 1, 0]);
-                mat4.rotate(modelviewMatrix, modelviewMatrix, rotationXZ, [1, 0, 0]);
-                mat4.rotate(modelviewMatrix, modelviewMatrix, rotationYZ, [0, 0, 1]);
-                
-                // Get uniform location and set the matrix
-                let u_modelview = gl.getUniformLocation(shader_program, "modelview");
-                gl.uniformMatrix4fv(u_modelview, false, modelviewMatrix);
-            
-                // Clear and draw
-                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-                gl.drawArrays(gl.TRIANGLES, 0, 3);
-            }
-            
-            // Start the animation
-            render();
-=======
             function rotation_xy(angle) {
                 let cosAngle = Math.cos(angle);
                 let sinAngle = Math.sin(angle);
@@ -194,32 +163,22 @@
             function render(now) {
                 requestAnimationFrame(render); // Gọi lại hàm render
             
-                // Tính delta thời gian
-                let time_delta = (now - last_update) / 1000;
-            
-                // Cập nhật lượng xoay cho từng trục
-                rotation_amnt_xy += ROTATION_SPEED_XY * time_delta;
-                rotation_amnt_xz += ROTATION_SPEED_XZ * time_delta;
-                rotation_amnt_yz += ROTATION_SPEED_YZ * time_delta;
-            
-                // Giữ lượng xoay trong khoảng từ 0 đến 1
-                rotation_amnt_xy %= 1.0;
-                rotation_amnt_xz %= 1.0;
-                rotation_amnt_yz %= 1.0;
-            
-                // Cập nhật thời gian cuối cùng đã render
-                last_update = now;
+                // Tính toán góc xoay dựa trên thời gian
+                let angleXY = now * 0.001 * 0.25; // 0.25 vòng mỗi giây
+                let angleXZ = now * 0.001 * 0.5;  // 0.5 vòng mỗi giây
+                let angleYZ = now * 0.001 * 0.05; // 0.05 vòng mỗi giây
             
                 // Tính toán từng ma trận xoay
-                let matrixXY = rotation_xy(rotation_amnt_xy);
-                let matrixXZ = rotation_xz(rotation_amnt_xz);
-                let matrixYZ = rotation_yz(rotation_amnt_yz);
+                let matrixXY = rotation_xy(angleXY);
+                let matrixXZ = rotation_xz(angleXZ);
+                let matrixYZ = rotation_yz(angleYZ);
             
                 // Kết hợp các ma trận lại với nhau để có được ma trận xoay cuối cùng
+                // (Giả sử bạn có một hàm để nhân các ma trận)
                 let finalMatrix = multiplyMatrices(multiplyMatrices(matrixXY, matrixXZ), matrixYZ);
             
                 // Áp dụng ma trận xoay vào shader
-                set_uniform_matrix4(gl, shader_program, "modelview", finalMatrix);
+                set_uniform_matrix4(gl, shader_program, "modelview", finalMatrix); 
             
                 // Vẽ đối tượng
                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -230,7 +189,6 @@
             // Khởi chạy hàm render lần đầu tiên để bắt đầu vòng lặp
             requestAnimationFrame(render);
             
->>>>>>> fd4d7dae46af335621a7b87b4310a913f1dbf02d
         </script>
     </body>
 
