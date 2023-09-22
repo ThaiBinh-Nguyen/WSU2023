@@ -26,6 +26,10 @@
             /** @type {WebGLRenderingContext} */
             let gl = canvas.getContext('webgl2');
             
+            let rotationXY = 0.0;
+            let rotationXZ = 0.0;
+            let rotationYZ = 0.0;
+
             // Vertex data
             let verts = [
                 //Create your triangle here
@@ -101,6 +105,33 @@
             gl.enableVertexAttribArray(atr_coord);
             gl.enableVertexAttribArray(atr_color);
 
+<<<<<<< HEAD
+            function render(now) {
+                requestAnimationFrame(render); // call me again
+                
+                // Update rotation variables
+                rotationXY += 0.25 * 2.0 * Math.PI / 60.0;
+                rotationXZ += 0.5 * 2.0 * Math.PI / 60.0;
+                rotationYZ += 0.05 * 2.0 * Math.PI / 60.0;
+                
+                // Calculate and set rotation matrix
+                let modelviewMatrix = mat4.create(); // Use gl-matrix library
+                mat4.rotate(modelviewMatrix, modelviewMatrix, rotationXY, [0, 1, 0]);
+                mat4.rotate(modelviewMatrix, modelviewMatrix, rotationXZ, [1, 0, 0]);
+                mat4.rotate(modelviewMatrix, modelviewMatrix, rotationYZ, [0, 0, 1]);
+                
+                // Get uniform location and set the matrix
+                let u_modelview = gl.getUniformLocation(shader_program, "modelview");
+                gl.uniformMatrix4fv(u_modelview, false, modelviewMatrix);
+            
+                // Clear and draw
+                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+                gl.drawArrays(gl.TRIANGLES, 0, 3);
+            }
+            
+            // Start the animation
+            render();
+=======
             function rotation_xy(angle) {
                 let cosAngle = Math.cos(angle);
                 let sinAngle = Math.sin(angle);
@@ -199,6 +230,7 @@
             // Khởi chạy hàm render lần đầu tiên để bắt đầu vòng lặp
             requestAnimationFrame(render);
             
+>>>>>>> fd4d7dae46af335621a7b87b4310a913f1dbf02d
         </script>
     </body>
 
