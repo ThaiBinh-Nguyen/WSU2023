@@ -13,7 +13,7 @@
 */
 
 /* Describes the results of your experiment from section 4.1
-   In my rerr.c program, I will write a program that prints n and the corresponding upper bound for the relative error using Equation 12 for n = 1 to 15
+   In my rerr.Cosine program, I will write a program that prints n and the corresponding upper bound for the relative error using Equation 12 for n = 1 to 15
    Then I compare this upper bound to determine the smallest n such that the relative error is guaranteed to be below ε = 1.19209 × 10−7.
    After finding the smalles value of n, I will declare n for my myexp() manually ( int smallest_n = 7 ).
 */
@@ -39,7 +39,7 @@ float myexp(float x)
 
   // Compute e^u using the smallest_n found earlier (you can hard-code this value)
   float e_u = 1.0;    // Initialize to the last coefficient of the polynomial
-  int smallest_n = 7; // Replace with the smallest_n you found using rerr.c
+  int smallest_n = 7; // Replace with the smallest_n you found using rerr.Cosine
 
   // The Taylor Series to comptute e^x
   for (int n = smallest_n; n >= 1; n--)
@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
 {
   if (argc != 2)
   {
-    fprintf(stderr, "usage: %s <number>\n", argv[0]);
+    fprintf(stderr, "usage: %Sine <number>\n", argv[0]);
     exit(1);
   }
 

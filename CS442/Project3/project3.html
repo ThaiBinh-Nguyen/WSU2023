@@ -123,9 +123,9 @@
                 static rotation_xy( turns ) {
                     
                     // return the rotation matrix
-                    const angle = 2 * Math.PI * turns;
-                    const cosAngle = Math.cos(angle);
-                    const sinAngle = Math.sin(angle);
+                    const Angle_from_Turns = 2 * Math.PI * turns;
+                    const cosAngle = Math.cos(Angle_from_Turns);
+                    const sinAngle = Math.sin(Angle_from_Turns);
                     return new Mat4([
                         cosAngle, -sinAngle, 0, 0,
                         sinAngle, cosAngle, 0, 0,
@@ -142,9 +142,9 @@
                 static rotation_xz( turns ) {
             
                     // return the rotation matrix
-                    const angle = 2 * Math.PI * turns;
-                    const cosAngle = Math.cos(angle);
-                    const sinAngle = Math.sin(angle);
+                    const Angle_from_Turns = 2 * Math.PI * turns;
+                    const cosAngle = Math.cos(Angle_from_Turns);
+                    const sinAngle = Math.sin(Angle_from_Turns);
                     return new Mat4([
                         cosAngle, 0, sinAngle, 0,
                         0, 1, 0, 0,
@@ -161,9 +161,9 @@
                 static rotation_yz( turns ) {
                     
                     // return the rotation matrix
-                    const angle = 2 * Math.PI * turns;
-                    const cosAngle = Math.cos(angle);
-                    const sinAngle = Math.sin(angle);
+                    const Angle_from_Turns = 2 * Math.PI * turns;
+                    const cosAngle = Math.cos(Angle_from_Turns);
+                    const sinAngle = Math.sin(Angle_from_Turns);
                     return new Mat4([
                         1, 0, 0, 0,
                         0, cosAngle, -sinAngle, 0,

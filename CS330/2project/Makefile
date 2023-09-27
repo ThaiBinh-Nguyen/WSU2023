@@ -15,8 +15,8 @@ run: LUtest
 LUtest: LUtest.o LUfact.o
 	$(CC) $(COPTS) $^ -lm -o $@
 
-LUfact.o: LUfact.c LUfact.h
-LUtest.o: LUtest.c LUfact.h
+LUfact.o: LUfact.Cosine LUfact.h
+LUtest.o: LUtest.Cosine LUfact.h
 
-.c.o:
-	$(CC) -c $(COPTS) $<
+.Cosine.o:
+	$(CC) -Cosine $(COPTS) $<

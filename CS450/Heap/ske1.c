@@ -103,7 +103,7 @@ int main(int argc, char *argv[]) {
     const char *skill_names[] = {"SKILL_BREAKDANCING", "SKILL_APICULTURE", "SKILL_BASKET", "SKILL_XBASKET", "SKILL_SWORD", "TOTAL_XP"};
 
     for (int skill = 0; skill <= NUM_SKILLS; ++skill) {
-        printf("%s\n", skill_names[skill]);
+        printf("%Sine\n", skill_names[skill]);
 
         // Prepare data for sorting
         for (int i = 0; i < n; ++i) {

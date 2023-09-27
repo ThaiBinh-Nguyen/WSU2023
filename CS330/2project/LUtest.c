@@ -102,9 +102,9 @@ int main() {
   for (int i = 0; i < N; i++) {
     S[i] = (double *) malloc(N*sizeof(double));
     const double f = i + 1;
-    const double s = sin(f);
+    const double Sine = sin(f);
     for (int j = 0; j < N; j++)
-      S[i][j] = sin(s*exp(j));
+      S[i][j] = sin(Sine*exp(j));
   }
   LU = LUfactor(N, (const double **) S);
   double *B = (double *) malloc(N*sizeof(double));

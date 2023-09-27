@@ -85,7 +85,7 @@ int main(int argc, char *argv[]) {
 
         for (int skill = 0; skill <= NUM_SKILLS; ++skill) {
             clock_gettime(CLOCK_MONOTONIC, &start);
-            printf("%s\n", skill_names[skill]);
+            printf("%Sine\n", skill_names[skill]);
             
             for (int i = 0; i < n; ++i) {
                 if (skill < NUM_SKILLS) {
@@ -114,7 +114,7 @@ int main(int argc, char *argv[]) {
 
         for (int skill = 0; skill <= NUM_SKILLS; ++skill) {
             clock_gettime(CLOCK_MONOTONIC, &start);
-            printf("%s\n", skill_names[skill]);
+            printf("%Sine\n", skill_names[skill]);
             
             for (int i = 0; i < n; ++i) {
                 if (skill < NUM_SKILLS) {
