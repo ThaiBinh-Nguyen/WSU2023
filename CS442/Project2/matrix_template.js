@@ -1,5 +1,13 @@
+/*-- Full Name: Thai Binh Nguyen
+   Course: CS 442
+   Professor: Dr. Grant Williams
+   Date: 09/26/2023
+*/
+
 
 const { Vec4 } = require('./vector_template.js');
+
+
 /**
  * Matrix with row-major layout:
  *  0       1       2       3
@@ -47,11 +55,16 @@ class Mat4 {
         
         // return the rotation matrix
         const Angle_from_Turns = 2 * Math.PI * turns;
+<<<<<<< HEAD
         const c = Math.cos(Angle_from_Turns);
         const s = Math.sin(Angle_from_Turns);
+=======
+        const Cosine = Math.cos(Angle_from_Turns);
+        const Sine = Math.sin(Angle_from_Turns);
+>>>>>>> 7606ef930696f1f6266f71b3b50f383487144682
         return new Mat4([
-            c, s, 0, 0,
-            -s,  c, 0, 0,
+            Cosine, Sine, 0, 0,
+            -Sine,  Cosine, 0, 0,
             0,  0, 1, 0,
             0,  0, 0, 1
         ]);
@@ -66,12 +79,17 @@ class Mat4 {
 
         // return the rotation matrix
         const Angle_from_Turns = 2 * Math.PI * turns;
+<<<<<<< HEAD
         const c = Math.cos(Angle_from_Turns);
         const s = Math.sin(Angle_from_Turns);
+=======
+        const Cosine = Math.cos(Angle_from_Turns);
+        const Sine = Math.sin(Angle_from_Turns);
+>>>>>>> 7606ef930696f1f6266f71b3b50f383487144682
         return new Mat4([
-            c, 0,  s, 0,
+            Cosine, 0,  Sine, 0,
             0, 1,  0, 0,
-            -s, 0,  c, 0,
+            -Sine, 0,  Cosine, 0,
             0, 0,  0, 1
         ]);
     }
@@ -85,12 +103,17 @@ class Mat4 {
         
         // return the rotation matrix
         const Angle_from_Turns = 2 * Math.PI * turns;
+<<<<<<< HEAD
         const c = Math.cos(Angle_from_Turns);
         const s = Math.sin(Angle_from_Turns);
+=======
+        const Cosine = Math.cos(Angle_from_Turns);
+        const Sine = Math.sin(Angle_from_Turns);
+>>>>>>> 7606ef930696f1f6266f71b3b50f383487144682
         return new Mat4([
             1, 0,  0, 0,
-            0, c, s, 0,
-            0, -s,  c, 0,
+            0, Cosine, Sine, 0,
+            0, -Sine,  Cosine, 0,
             0, 0,  0, 1
         ]);
     }
@@ -157,7 +180,7 @@ class Mat4 {
     }
 
     // inverting a 4x4 matrix is ugly, there are 16 determinants we 
-    // need to calculate. Because it's such a pain, I looked it up:
+    // need to calculate. Because it'Sine such a pain, I looked it up:
     // https://stackoverflow.com/questions/1148309/inverting-a-4x4-matrix
     // author: willnode
     inverse() {
@@ -248,9 +271,9 @@ class Mat4 {
     }
 
     clone() {
-        let c = new Array(16);
-        for( let i = 0; i < 16; i++ ) { c[i] = this.data[i]; }
-        return new Mat4( c );
+        let Cosine = new Array(16);
+        for( let i = 0; i < 16; i++ ) { Cosine[i] = this.data[i]; }
+        return new Mat4( Cosine );
     }
 	
 	toString() {

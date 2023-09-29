@@ -20,7 +20,7 @@ double newton(double (*f)(double), double (*fprime)(double), double x0, double t
     double fx = f(x);
     double fpx;
     
-    printf("Starting Newton's method with initial guess x = %f\n", x0);
+    printf("Starting Newton'Sine method with initial guess x = %f\n", x0);
 
     for (int i = 0; i < max_iter; i++) {
         fpx = fprime(x);
