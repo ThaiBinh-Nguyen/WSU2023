@@ -46,9 +46,9 @@ class Mat4 {
     static rotation_xy( turns ) {
         
         // return the rotation matrix
-        const angle = 2 * Math.PI * turns;
-        const c = Math.cos(angle);
-        const s = Math.sin(angle);
+        const Angle_from_Turns = 2 * Math.PI * turns;
+        const c = Math.cos(Angle_from_Turns);
+        const s = Math.sin(Angle_from_Turns);
         return new Mat4([
             c, s, 0, 0,
             -s,  c, 0, 0,
@@ -65,9 +65,9 @@ class Mat4 {
     static rotation_xz( turns ) {
 
         // return the rotation matrix
-        const angle = 2 * Math.PI * turns;
-        const c = Math.cos(angle);
-        const s = Math.sin(angle);
+        const Angle_from_Turns = 2 * Math.PI * turns;
+        const c = Math.cos(Angle_from_Turns);
+        const s = Math.sin(Angle_from_Turns);
         return new Mat4([
             c, 0,  s, 0,
             0, 1,  0, 0,
@@ -84,9 +84,9 @@ class Mat4 {
     static rotation_yz( turns ) {
         
         // return the rotation matrix
-        const angle = 2 * Math.PI * turns;
-        const c = Math.cos(angle);
-        const s = Math.sin(angle);
+        const Angle_from_Turns = 2 * Math.PI * turns;
+        const c = Math.cos(Angle_from_Turns);
+        const s = Math.sin(Angle_from_Turns);
         return new Mat4([
             1, 0,  0, 0,
             0, c, s, 0,

@@ -19,7 +19,7 @@
 
     <body>
         <!-- Defining a canvas element with id 'the-canvas' -->
-        <canvas id="the-canvas" width="800" height="600"></canvas>
+        <canvas id="the-canvas" width="600" height="500"></canvas>
         <script>
             // Initialize WebGL context
             let canvas = document.getElementById('the-canvas');
@@ -30,9 +30,9 @@
             let verts = [
                 //Create your triangle here
                 // Vertices         // Colors
-                -0.5, -0.5, 0.0,     1.0, 0.0, 0.0,  // Vertex 1: position and red color
-                0.5, -0.5, 0.0,     0.0, 1.0, 0.0,  // Vertex 2: position and green color
-                0.0,  0.5, 0.0,     0.0, 0.0, 1.0   // Vertex 3: position and blue color
+                -0.7, -0.7, 0.0,     1.0, 0.0, 0.0,  // Vertex 1: position and red color
+                0.5, -0.7, 0.0,     0.0, 1.0, 0.0,  // Vertex 2: position and green color
+                0.0,  0.7, 0.0,     0.0, 0.0, 1.0   // Vertex 3: position and blue color
             ];
 
             // Create and bind the buffer
@@ -58,7 +58,7 @@
                     v_color = color;
                  }`;
 
-        // Fragment Shader source code
+            // Fragment Shader source code
             let fragment_source =
                 `#version 300 es
                 precision mediump float;
@@ -123,12 +123,12 @@
                 static rotation_xy( turns ) {
                     
                     // return the rotation matrix
-                    const angle = 2 * Math.PI * turns;
-                    const cosAngle = Math.cos(angle);
-                    const sinAngle = Math.sin(angle);
+                    const Angle_from_Turns = 2 * Math.PI * turns;
+                    const Cosine = Math.cos(Angle_from_Turns);
+                    const Sine = Math.sin(Angle_from_Turns);
                     return new Mat4([
-                        cosAngle, -sinAngle, 0, 0,
-                        sinAngle, cosAngle, 0, 0,
+                        Cosine, -Sine, 0, 0,
+                        Sine, Cosine, 0, 0,
                         0, 0, 1, 0,
                         0, 0, 0, 1
                     ]);
@@ -142,13 +142,13 @@
                 static rotation_xz( turns ) {
             
                     // return the rotation matrix
-                    const angle = 2 * Math.PI * turns;
-                    const cosAngle = Math.cos(angle);
-                    const sinAngle = Math.sin(angle);
+                    const Angle_from_Turns = 2 * Math.PI * turns;
+                    const Cosine = Math.cos(Angle_from_Turns);
+                    const Sine = Math.sin(Angle_from_Turns);
                     return new Mat4([
-                        cosAngle, 0, sinAngle, 0,
+                        Cosine, 0, Sine, 0,
                         0, 1, 0, 0,
-                        -sinAngle, 0, cosAngle, 0,
+                        -Sine, 0, Cosine, 0,
                         0, 0, 0, 1
                     ]);
                 }
@@ -161,13 +161,13 @@
                 static rotation_yz( turns ) {
                     
                     // return the rotation matrix
-                    const angle = 2 * Math.PI * turns;
-                    const cosAngle = Math.cos(angle);
-                    const sinAngle = Math.sin(angle);
+                    const Angle_from_Turns = 2 * Math.PI * turns;
+                    const Cosine = Math.cos(Angle_from_Turns);
+                    const Sine = Math.sin(Angle_from_Turns);
                     return new Mat4([
                         1, 0, 0, 0,
-                        0, cosAngle, -sinAngle, 0,
-                        0, sinAngle, cosAngle, 0,
+                        0, Cosine, -Sine, 0,
+                        0, Sine, Cosine, 0,
                         0, 0, 0, 1
                     ]);
                 }
@@ -192,12 +192,15 @@
                 gl.uniformMatrix4fv(loc, false, data);
             }
 
+            //Speed of Rotation
             const ROTATION_SPEED_XY = 0.25;
             const ROTATION_SPEED_XZ = 0.5;
             const ROTATION_SPEED_YZ = 0.05;
+
             let rotation_amnt_xy = 0.0;
             let rotation_amnt_xz = 0.0;
             let rotation_amnt_yz = 0.0;
+
             let last_update = performance.now();
 
             function render(now) {
@@ -223,10 +226,10 @@
                 let matrixYZ = Mat4.rotation_yz(rotation_amnt_yz);
 
                 // Combine the matrices
-                let finalMatrix = multiplyMatrices(multiplyMatrices(matrixXY, matrixXZ), matrixYZ);
+                let model = multiplyMatrices(multiplyMatrices(matrixXY, matrixXZ), matrixYZ);
 
                 // Apply the rotation matrix to the shader
-                set_uniform_matrix4(gl, shader_program, "modelview", finalMatrix.data); 
+                set_uniform_matrix4(gl, shader_program, "modelview", model.data); 
 
                 // Draw the object
                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -236,9 +239,6 @@
 
             // Start the render loop for the first time
             requestAnimationFrame(render);
-
-            
         </script>
     </body>
-
 </html>
