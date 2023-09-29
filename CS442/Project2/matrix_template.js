@@ -55,13 +55,8 @@ class Mat4 {
         
         // return the rotation matrix
         const Angle_from_Turns = 2 * Math.PI * turns;
-<<<<<<< HEAD
-        const c = Math.cos(Angle_from_Turns);
-        const s = Math.sin(Angle_from_Turns);
-=======
         const Cosine = Math.cos(Angle_from_Turns);
         const Sine = Math.sin(Angle_from_Turns);
->>>>>>> 7606ef930696f1f6266f71b3b50f383487144682
         return new Mat4([
             Cosine, Sine, 0, 0,
             -Sine,  Cosine, 0, 0,
@@ -79,13 +74,8 @@ class Mat4 {
 
         // return the rotation matrix
         const Angle_from_Turns = 2 * Math.PI * turns;
-<<<<<<< HEAD
-        const c = Math.cos(Angle_from_Turns);
-        const s = Math.sin(Angle_from_Turns);
-=======
         const Cosine = Math.cos(Angle_from_Turns);
         const Sine = Math.sin(Angle_from_Turns);
->>>>>>> 7606ef930696f1f6266f71b3b50f383487144682
         return new Mat4([
             Cosine, 0,  Sine, 0,
             0, 1,  0, 0,
@@ -103,13 +93,8 @@ class Mat4 {
         
         // return the rotation matrix
         const Angle_from_Turns = 2 * Math.PI * turns;
-<<<<<<< HEAD
-        const c = Math.cos(Angle_from_Turns);
-        const s = Math.sin(Angle_from_Turns);
-=======
         const Cosine = Math.cos(Angle_from_Turns);
         const Sine = Math.sin(Angle_from_Turns);
->>>>>>> 7606ef930696f1f6266f71b3b50f383487144682
         return new Mat4([
             1, 0,  0, 0,
             0, Cosine, Sine, 0,
