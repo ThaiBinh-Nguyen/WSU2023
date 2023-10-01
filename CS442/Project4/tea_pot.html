@@ -1,0 +1,191 @@
+<!-- Full Name: Thai Binh Nguyen
+   Course: CS 442
+   Professor: Dr. Grant Williams
+   Date: 09/26/2023
+-->
+
+<!DOCTYPE html>
+<html>
+    <!-- Applying styles for the canvas -->
+    <style>
+        #the-canvas {
+            border: 1px solid darkblue;
+        }
+    </style>
+
+    <head>
+        <title>Project 4: Animation</title>
+    </head>
+
+    <body>
+        <!-- Defining a canvas element with id 'the-canvas' -->
+        <canvas id="the-canvas" width="800" height="700"></canvas>
+
+        <script src="./mesh_template.js"> </script>
+
+        <script>
+            // Initialize WebGL context
+            let canvas = document.getElementById('the-canvas');
+            /** @type {WebGLRenderingContext} */
+            let gl = canvas.getContext('webgl2');
+            
+            // Clearing the canvas with specific color
+            gl.clearColor(128 / 255, 204 / 255, 255 / 255, 1);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+
+            // Vertex shader
+            let vertex_source =
+                `#version 300 es
+                precision mediump float;
+                uniform mat4 modelview; // this is the matrix
+                in vec3 coordinates;
+                in vec4 color;
+                out vec4 v_color;
+                void main( void ) {
+                    gl_Position = modelview * vec4( coordinates, 1.0 );
+                    v_color = color;
+                 }`;
+
+            // Fragment Shader source code
+            let fragment_source =
+                `#version 300 es
+                precision mediump float;
+                in vec4 v_color;
+                out vec4 f_color;
+                void main( void ) {
+                    f_color = v_color;
+                }`;
+        
+
+            // Creating the Vertex and Fragment shaders
+            let vert_shader = gl.createShader( gl.VERTEX_SHADER );
+            let frag_shader = gl.createShader( gl.FRAGMENT_SHADER );
+
+            // Providing the source code to shaders
+            gl.shaderSource(vert_shader, vertex_source);
+            gl.shaderSource(frag_shader, fragment_source);
+
+            // Compiling the shaders
+            gl.compileShader(vert_shader);
+            gl.compileShader(frag_shader);
+
+            // Creating a shader program and linking shaders to it
+            let shader_program = gl.createProgram();
+            gl.attachShader(shader_program, vert_shader);
+            gl.attachShader(shader_program, frag_shader);
+            gl.linkProgram(shader_program);
+
+            // Using the created program
+            gl.useProgram(shader_program);
+
+            
+            class Mat4 {
+                constructor( data ) {
+                    if( data == null ) {
+                        this.data = [
+                            1, 0, 0, 0,
+                            0, 1, 0, 0,
+                            0, 0, 1, 0,
+                            0, 0, 0, 1,
+                        ]
+                    }
+                    else {
+                        this.data = data;
+                    }
+                }
+            
+                /**
+                 * Returns a rotation matrix in the XZ plane, rotating by the given number of turns
+                 * @param {number} turns amount to rotate by
+                 * @returns {Mat4}  
+                 */
+                static rotation_xz( turns ) {
+            
+                    // return the rotation matrix
+                    const Angle_from_Turns = 2 * Math.PI * turns;
+                    const Cosine = Math.cos(Angle_from_Turns);
+                    const Sine = Math.sin(Angle_from_Turns);
+                    return new Mat4([
+                        Cosine, 0, Sine, 0,
+                        0, 1, 0, 0,
+                        -Sine, 0, Cosine, 0,
+                        0, 0, 0, 1
+                    ]);
+                }
+
+                static scaling(sx, sy, sz) {
+                    return new Mat4([
+                        sx, 0, 0, 0,
+                        0, sy, 0, 0,
+                        0, 0, sz, 0,
+                        0, 0, 0, 1
+                    ]);
+                }
+                
+            }
+
+            // Function to multiply Mat4 objects
+            function multiplyMatrices(a, b) {
+                let result = new Float32Array(16);
+                for (let i = 0; i < 4; i++) {
+                    for (let j = 0; j < 4; j++) {
+                        result[i * 4 + j] = 0.0;
+                        for (let k = 0; k < 4; k++) {
+                            result[i * 4 + j] += a.data[i * 4 + k] * b.data[k * 4 + j];
+                        }
+                    }
+                }
+                return new Mat4(result);
+            }
+            function set_uniform_matrix4(gl, program, name, data) {
+                const loc = gl.getUniformLocation(program, name);
+                gl.uniformMatrix4fv(loc, false, data);
+            }
+
+            let teapotMesh; 
+            Mesh.from_obj_file(gl, './teapot.obj', shader_program, function(mesh) {
+                teapotMesh = mesh;
+
+                // Start the render loop for the first time
+                requestAnimationFrame(render);
+            });
+
+            //Speed of Rotation
+            const ROTATION_SPEED_XZ = 0.25;
+
+            let rotation_amnt_xz = 0.0;
+
+            let last_update = performance.now();
+            function render(now) {
+                requestAnimationFrame(render); // Call the render function again
+
+                // Calculate time delta
+                let time_delta = (now - last_update) / 1000;
+                last_update = now;
+
+                // Update rotation amounts
+                rotation_amnt_xz += ROTATION_SPEED_XZ * time_delta;
+
+                // Keep the rotation amount in the range [0, 1]
+                rotation_amnt_xz %= 1.0;
+                // Create a scaling matrix
+                let scalingMatrix = Mat4.scaling(0.25, 0.25, 0.25);  // Scale down by 50%
+                // Create rotation matrices using Mat4 class
+
+                let matrixXZ = Mat4.rotation_xz(rotation_amnt_xz);
+
+                // Combine the scaling and rotation matrices
+                let model = multiplyMatrices(scalingMatrix, matrixXZ);
+
+                // Apply the rotation matrix to the shader
+                set_uniform_matrix4(gl, shader_program, "modelview", model.data); 
+
+                // Draw the object
+                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+                if (teapotMesh != null) {
+                    teapotMesh.render(gl);
+                }
+            }
+        </script>
+    </body>
+</html>

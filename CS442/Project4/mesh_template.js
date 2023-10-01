@@ -1,6 +1,26 @@
 
 const VERTEX_STRIDE = 28;
+// Helper functions (newly added)
+function create_and_load_vertex_buffer(gl, data, usage) {
+    let buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), usage);
+    return buffer;
+}
 
+function create_and_load_elements_buffer(gl, data, usage) {
+    let buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(data), usage);
+    return buffer;
+}
+
+function set_vertex_attrib_to_buffer(gl, program, attrib_name, buffer, size, type, normalized, stride, offset) {
+    let attrib_location = gl.getAttribLocation(program, attrib_name);
+    gl.enableVertexAttribArray(attrib_location);
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.vertexAttribPointer(attrib_location, size, type, normalized, stride, offset);
+}
 class Mesh {
     /** 
      * Creates a new mesh and loads it into video memory.
@@ -107,7 +127,33 @@ class Mesh {
      */
     static from_obj_text( gl, program, text ) {
         // your code here
-        return new Mesh( /*your arguments here*/ );
+        // Initialize empty arrays for vertices and indices
+        let vertices = [];
+        let indices = [];
+    
+        // Split the text into lines
+        let lines = text.split(/\r?\n/);
+    
+        // Loop through each line to parse vertices and faces
+        lines.forEach(line => {
+            // Remove leading and trailing whitespace
+            line = line.trim();
+    
+            // Split the line into parts
+            let parts = line.split(/(\s+)/).filter(part => part.trim().length > 0);
+    
+            // Parse vertices and faces
+            if (parts[0] === 'v') {
+                // Add vertex data (x, y, z)
+                vertices.push(parseFloat(parts[1]), parseFloat(parts[2]), parseFloat(parts[3]));
+                // Add color data (r, g, b, a)
+                vertices.push(0, 0, 0, 1);  // Green color for all vertices
+            } else if (parts[0] === 'f') {
+                // Add index data
+                indices.push(parseInt(parts[1]) - 1, parseInt(parts[2]) - 1, parseInt(parts[3]) - 1);
+            }
+        });
+        return new Mesh(gl, program, vertices, indices);
     }
 
     /**
