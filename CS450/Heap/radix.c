@@ -94,7 +94,7 @@ int main(int argc, char *argv[]) {
     const char *skill_names[] = {"SKILL_BREAKDANCING", "SKILL_APICULTURE", "SKILL_BASKET", "SKILL_XBASKET", "SKILL_SWORD", "TOTAL_XP"};
 
     for (int skill = 0; skill <= NUM_SKILLS; ++skill) {
-        printf("%Sine\n", skill_names[skill]);
+        printf("%s\n", skill_names[skill]);
 
         // Prepare data for sorting
         for (int i = 0; i < n; ++i) {
@@ -121,7 +121,7 @@ int main(int argc, char *argv[]) {
 
             // Print sorted values
             for (int i = 0; i < n; ++i) {
-                printf("%d\n ", sorted[i]);
+                printf("%d\n", sorted[i]);
             }
             printf("\n");
             printf("time taken: %ld microseconds\n", time_in_micros);
