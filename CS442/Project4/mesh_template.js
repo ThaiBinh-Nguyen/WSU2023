@@ -1,18 +1,19 @@
 
 const VERTEX_STRIDE = 28;
-// Helper functions (newly added)
-function create_and_load_vertex_buffer(gl, data, usage) {
-    let buffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), usage);
-    return buffer;
+
+
+function create_and_load_vertex_buffer(gl, vertices, usage) {
+    let Buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, Buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), usage);
+    return Buffer;
 }
 
-function create_and_load_elements_buffer(gl, data, usage) {
-    let buffer = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(data), usage);
-    return buffer;
+function create_and_load_elements_buffer(gl, vertices, usage) {
+    let Buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, Buffer);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(vertices), usage);
+    return Buffer;
 }
 
 function set_vertex_attrib_to_buffer(gl, program, attrib_name, buffer, size, type, normalized, stride, offset) {
@@ -135,24 +136,38 @@ class Mesh {
         let lines = text.split(/\r?\n/);
     
         // Loop through each line to parse vertices and faces
-        lines.forEach(line => {
-            // Remove leading and trailing whitespace
-            line = line.trim();
-    
-            // Split the line into parts
-            let parts = line.split(/(\s+)/).filter(part => part.trim().length > 0);
-    
-            // Parse vertices and faces
-            if (parts[0] === 'v') {
-                // Add vertex data (x, y, z)
-                vertices.push(parseFloat(parts[1]), parseFloat(parts[2]), parseFloat(parts[3]));
-                // Add color data (r, g, b, a)
-                vertices.push(0, 0, 0, 1);  // Green color for all vertices
-            } else if (parts[0] === 'f') {
-                // Add index data
-                indices.push(parseInt(parts[1]) - 1, parseInt(parts[2]) - 1, parseInt(parts[3]) - 1);
+        for(let i = 0; i < lines.length; i++) {
+            let line = lines[i].trim();
+
+            // Split the line into segments based on whitespace
+            let parts_of_line = line.split(/(\s+)/);
+
+            let filtered_parts = [];
+            for(let i = 0; i < parts_of_line.length; i++) {
+                let part = parts_of_line[i].trim();
+                if(part.length > 0) {
+                    filtered_parts.push(part);
+                }
             }
-        });
+            
+            parts_of_line = filtered_parts;
+            // If the first segment is 'v', it's vertex information
+            if(parts_of_line[0] === 'v') {
+                let x = parseFloat(parts_of_line[1]);
+                let y = parseFloat(parts_of_line[2]);
+                let z = parseFloat(parts_of_line[3]);
+                vertices.push(x, y, z);
+                // Add color to the vertex (here it's green)
+                vertices.push(0, 0, 0, 1);
+            } 
+            // If the first segment is 'f', it's face information
+            else if(parts_of_line[0] === 'f') {
+                let index1 = parseInt(parts_of_line[1]) - 1;
+                let index2 = parseInt(parts_of_line[2]) - 1;
+                let index3 = parseInt(parts_of_line[3]) - 1;
+                indices.push(index1, index2, index3);
+            }
+        }
         return new Mesh(gl, program, vertices, indices);
     }
 

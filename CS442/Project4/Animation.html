@@ -99,7 +99,7 @@
                  * @param {number} turns amount to rotate by
                  * @returns {Mat4}  
                  */
-                static rotation_xz( turns ) {
+                static rotation( turns ) {
             
                     // return the rotation matrix
                     const Angle_from_Turns = 2 * Math.PI * turns;
@@ -121,22 +121,36 @@
                         0, 0, 0, 1
                     ]);
                 }
-                
-            }
-
-            // Function to multiply Mat4 objects
-            function multiplyMatrices(a, b) {
-                let result = new Float32Array(16);
-                for (let i = 0; i < 4; i++) {
-                    for (let j = 0; j < 4; j++) {
-                        result[i * 4 + j] = 0.0;
-                        for (let k = 0; k < 4; k++) {
-                            result[i * 4 + j] += a.data[i * 4 + k] * b.data[k * 4 + j];
+                static translation( dx, dy, dz ) {
+                    // return the translation matrix
+                    return new Mat4([
+                        1, 0, 0, dx,
+                        0, 1, 0, dy,
+                        0, 0, 1, dz,
+                        0, 0, 0, 1
+                    ]);
+                }
+                rc( row, col ) {
+                    return this.data[ row * 4 + col ]
+                }
+                mul( right ) {
+        
+                    // return the result of multiplication
+                    const result = [];
+                    for (let row = 0; row < 4; row++) {
+                        for (let col = 0; col < 4; col++) {
+                            let sum = 0;
+                            for (let k = 0; k < 4; k++) {
+                                sum += this.rc(row, k) * right.rc(k, col);
+                            }
+                            result.push(sum);
                         }
                     }
+                    return new Mat4(result);
                 }
-                return new Mat4(result);
+            
             }
+
             function set_uniform_matrix4(gl, program, name, data) {
                 const loc = gl.getUniformLocation(program, name);
                 gl.uniformMatrix4fv(loc, false, data);
@@ -151,9 +165,9 @@
             });
 
             //Speed of Rotation
-            const ROTATION_SPEED_XZ = 0.25;
+            const ROTATION_SPEED = 0.25;
 
-            let rotation_amnt_xz = 0.0;
+            let rotation_amnt = 0.0;
 
             let last_update = performance.now();
             function render(now) {
@@ -164,23 +178,28 @@
                 last_update = now;
 
                 // Update rotation amounts
-                rotation_amnt_xz += ROTATION_SPEED_XZ * time_delta;
+                rotation_amnt += ROTATION_SPEED * time_delta;
 
                 // Keep the rotation amount in the range [0, 1]
-                rotation_amnt_xz %= 1.0;
+                rotation_amnt %= 1.0;
+
                 // Create a scaling matrix
-                let scalingMatrix = Mat4.scaling(0.25, 0.25, 0.25);  // Scale down by 50%
+                let scalingMatrix = Mat4.scaling(0.25, 0.25, 0.25);  // Scale down by 25%
+
                 // Create rotation matrices using Mat4 class
 
-                let matrixXZ = Mat4.rotation_xz(rotation_amnt_xz);
+                let matrix = Mat4.rotation(rotation_amnt);
+
+                let translationMatrix = Mat4.translation(0, 0.1, 0);
 
                 // Combine the scaling and rotation matrices
-                let model = multiplyMatrices(scalingMatrix, matrixXZ);
+                let model = matrix.mul(translationMatrix.mul(scalingMatrix));
 
                 // Apply the rotation matrix to the shader
                 set_uniform_matrix4(gl, shader_program, "modelview", model.data); 
 
                 // Draw the object
+                gl.enable(gl.DEPTH_TEST);
                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
                 if (teapotMesh != null) {
                     teapotMesh.render(gl);
