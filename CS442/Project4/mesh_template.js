@@ -12,7 +12,7 @@ function create_and_load_vertex_buffer(gl, vertices, usage) {
 function create_and_load_elements_buffer(gl, vertices, usage) {
     let Buffer = gl.createBuffer();
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, Buffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(vertices), usage);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Int16Array(vertices), usage);
     return Buffer;
 }
 
