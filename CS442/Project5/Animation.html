@@ -26,17 +26,28 @@
             let canvas = document.getElementById('the-canvas');
             /** @type {WebGLRenderingContext} */
             let gl = canvas.getContext('webgl2');
+            if (!gl) {
+                alert('WebGL not supported, falling back on experimental-webgl');
+                gl = canvas.getContext('experimental-webgl');
+            }
+            
+            if (!gl) {
+                alert('Your browser does not support WebGL');
+            }
+            
+            //gl.viewport(0, 0, canvas.width, canvas.height);
+
             // Vertices for a cube (x, y, z)
             let vertices = [
-                // x, y, z,   r, g, b
-                -1, -1, -1,   0, 0, 0,  // Vertex 0
-                1, -1, -1,   0, 0, 0,  // Vertex 1
-                1,  1, -1,   0, 0, 0,  // Vertex 2
-                -1,  1, -1,   0, 0, 0,  // Vertex 3
-                -1, -1,  1,   0, 0, 0,  // Vertex 4
-                1, -1,  1,   0, 0, 0,  // Vertex 5
-                1,  1,  1,   0, 0, 0,  // Vertex 6
-                -1,  1,  1,   0, 0, 0   // Vertex 7
+                // x, y, z, 
+                -1, -1, -1,  // Vertex 0
+                1, -1, -1, // Vertex 1
+                1,  1, -1, // Vertex 2
+                -1,  1, -1,  // Vertex 3
+                -1, -1,  1,  // Vertex 4
+                1, -1,  1,  // Vertex 5
+                1,  1,  1,  // Vertex 6
+                -1,  1,  1  // Vertex 7
             ];
 
 
@@ -64,9 +75,6 @@
 
             // Clearing the canvas with specific color
             gl.clearColor(128 / 255, 204 / 255, 255 / 255, 1);
-            // Enable depth test
-            gl.enable(gl.DEPTH_TEST);
-            gl.clear(gl.COLOR_BUFFER_BIT);
 
             // Vertex Shader
             let vertex_source = 
@@ -74,28 +82,20 @@
                 precision mediump float;
                 uniform mat4 modelview; // this is the matrix
                 in vec3 coordinates;
-                in vec4 color;
-                out vec4 v_color;
                 void main( void ) {
                     gl_Position = modelview * vec4( coordinates, 1.0 );
-                    v_color = color;
                  }`;
 
-            // Fragment Shader
             let fragment_source = 
-            `   #version 300 es
+            `#version 300 es
                 precision mediump float;
-
-                in vec4 v_color;
-
-                out vec4 f_color;
-
-                void main( void ) {
+                out vec4 f_color;  // Declare f_color
+                void main(void) {
                     /* we can test depth values with this.*/
-                    f_color = vec4(vec3(gl_FragCoord.z), 1.0); 
-                }
-            `;
-        
+                    f_color = vec4(vec3(gl_FragCoord.z), 1.0);
+                }`;
+                
+
 
             // Creating the Vertex and Fragment shaders
             let vert_shader = gl.createShader( gl.VERTEX_SHADER );
@@ -107,7 +107,13 @@
 
             // Compiling the shaders
             gl.compileShader(vert_shader);
+            if (!gl.getShaderParameter(vert_shader, gl.COMPILE_STATUS)) {
+                console.error("Vertex Shader Error: ", gl.getShaderInfoLog(vert_shader));
+            }
             gl.compileShader(frag_shader);
+            if (!gl.getShaderParameter(frag_shader, gl.COMPILE_STATUS)) {
+                console.error("Fragment Shader Error: ", gl.getShaderInfoLog(frag_shader));
+            }
 
             // Creating a shader program and linking shaders to it
             let shader_program = gl.createProgram();
@@ -115,9 +121,11 @@
             gl.attachShader(shader_program, frag_shader);
             gl.linkProgram(shader_program);
 
+            if (!gl.getProgramParameter(shader_program, gl.LINK_STATUS)) {
+                console.error("Program Link Error: ", gl.getProgramInfoLog(shader_program));
+            }
             // Using the created program
             gl.useProgram(shader_program);
-
             
             // Binding the buffer again
             gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
@@ -126,11 +134,8 @@
         
             // Getting attribute locations and enabling them for coordinates
             let atr_coord = gl.getAttribLocation(shader_program, "coordinates");
-            let atr_color = gl.getAttribLocation(shader_program, "color");  // make sure this matches your shader attribute name
-            gl.vertexAttribPointer(atr_coord, 3, gl.FLOAT, false, 24, 0); // 24 bytes per vertex
-            gl.vertexAttribPointer(atr_color, 3, gl.FLOAT, false, 24, 12); // 12 bytes offset for color
+            gl.vertexAttribPointer(atr_coord, 3, gl.FLOAT, false, 12, 0); // 24 bytes per vertex
             gl.enableVertexAttribArray(atr_coord);
-            gl.enableVertexAttribArray(atr_color);
 
             class Mat4 {
                 constructor( data ) {
@@ -162,6 +167,14 @@
                         Cosine, 0, Sine, 0,
                         0, 1, 0, 0,
                         -Sine, 0, Cosine, 0,
+                        0, 0, 0, 1
+                    ]);
+                }
+                static scaling(sx, sy, sz) {
+                    return new Mat4([
+                        sx, 0, 0, 0,
+                        0, sy, 0, 0,
+                        0, 0, sz, 0,
                         0, 0, 0, 1
                     ]);
                 }
@@ -233,20 +246,20 @@
             const aspectRatio = 800/700;
 
             // Near and far clipping planes
-            const near = 0.1;
-            const far = 100.0;
+            const near = 1;
+            const far = 500;
 
             // Calculate frustum parameters based on the above values
-            const top = near * Math.tan(fieldOfView / 2);
-            const bottom = -top;
-            const right = top * aspectRatio;
+            const toppp = near * Math.tan(fieldOfView / 2);
+            const bottom = -toppp;
+            const right = toppp * aspectRatio;
             const left = -right;
 
             // Create the frustum projection matrix
-            let perspective_matrix = Mat4.frustum(left, right, bottom, top, near, far);
+            let perspective_matrix = Mat4.frustum(left, right, bottom, toppp, near, far);
 
             //Speed of Rotation
-            const ROTATION_SPEED = 0.25;
+            const ROTATION_SPEED = - 0.25;
 
             let rotation_amnt = 0.0;
 
@@ -267,6 +280,8 @@
 
 
                 let matrix = Mat4.rotation(rotation_amnt);
+                // Create a scaling matrix
+                let scalingMatrix = Mat4.scaling(0.05, 0.05, 0.05);  // Scale down by 25%
                 
                 let model = perspective_matrix.mul(matrix);
 
@@ -274,6 +289,8 @@
                 set_uniform_matrix4(gl, shader_program, "modelview", model.data); 
 
                 // Draw the object
+                // Enable depth test
+                gl.enable(gl.DEPTH_TEST);
                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
                 gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
             }
