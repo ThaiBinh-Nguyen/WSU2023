@@ -275,7 +275,7 @@
                 let near = 1;
                 let far = 1001;
                 let projectionMatrix = Mat4.perspective(fov, aspect, near, far);*/
-                let scalingMatrix = Mat4.scaling(0.5,0.5,0.5);
+                let scalingMatrix = Mat4.scaling(0.5,0.8,0.5);
                 let matrix = Mat4.rotation(rotation_amnt);
                 //let model = projectionMatrix.mul(matrix.mul(scalingMatrix));
                 let model = matrix.mul(scalingMatrix);
