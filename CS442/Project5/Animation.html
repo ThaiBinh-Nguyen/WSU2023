@@ -175,6 +175,16 @@
                         0, 0, 0, 1
                     ]);
                 }
+                static translation( dx, dy, dz ) {
+                    
+                    // return the translation matrix
+                    return new Mat4([
+                        1, 0, 0, dx,
+                        0, 1, 0, dy,
+                        0, 0, 1, dz,
+                        0, 0, 0, 1
+                    ]);
+                }
 
                 rc( row, col ) {
                     return this.data[ row * 4 + col ]
@@ -194,7 +204,7 @@
                     }
                     return new Mat4(result);
                 }
-                /*
+                
                 //located inside of the Mat4 class
                 static frustum( left, right, bottom, top, near, far ) { 
                     // these scalars will scale x,y values to the near plane
@@ -238,7 +248,7 @@
                     const left = -right;
                     
                     return this.frustum(left, right, bottom, top, near, far);
-                }*/
+                }
 
             }
 
@@ -269,17 +279,21 @@
                 rotation_amnt %= 1.0;
 
             
-                /*// Create a projection matrix
+                // Create a projection matrix
                 let fov = Math.PI / 2; // 90 degrees
                 let aspect = canvas.width / canvas.height;
                 let near = 1;
                 let far = 1001;
-                let projectionMatrix = Mat4.perspective(fov, aspect, near, far);*/
-                let scalingMatrix = Mat4.scaling(0.5,0.8,0.5);
+                let projectionMatrix = Mat4.perspective(fov, aspect, near, far);
+
+                let scalingMatrix = Mat4.scaling(1.2,1.2,1.2);
+                
                 let matrix = Mat4.rotation(rotation_amnt);
-                //let model = projectionMatrix.mul(matrix.mul(scalingMatrix));
-                let model = matrix.mul(scalingMatrix);
-                //let model = projectionMatrix.mul(matrix);
+
+                let translationMatrix = Mat4.translation(0,0,2.8);
+
+                let model = matrix.mul(scalingMatrix.mul(projectionMatrix.mul(translationMatrix)));
+               
                 // Update the shader uniform
                 set_uniform_matrix4(gl, shader_program, "modelview", model.data);
 
