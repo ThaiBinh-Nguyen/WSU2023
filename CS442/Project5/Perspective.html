@@ -14,7 +14,7 @@
     </style>
 
     <head>
-        <title>Project 5: Animation</title>
+        <title>Project 5: Perspective</title>
     </head>
 
     <body>
@@ -291,7 +291,7 @@
                 let matrix = Mat4.rotation(rotation_amnt);
 
                 let translationMatrix = Mat4.translation(0,0,2.8);
-
+                
                 let model = matrix.mul(scalingMatrix.mul(projectionMatrix.mul(translationMatrix)));
                
                 // Update the shader uniform
