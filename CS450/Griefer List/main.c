@@ -1,6 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
+#include <stdbool.h>
+
+#define ALPHA 0.57
 
 typedef struct Info {
     int server_id;
@@ -33,7 +37,8 @@ PlayerNode* createPlayerNode(char* username, int server_id, long unix_time_of_ba
     strcpy(newNode->username, username);
     newNode->info = createInfo(server_id, unix_time_of_ban);
     newNode->height = 1; // Khởi tạo với độ cao là 1
-    newNode->left = newNode->right = NULL;
+    newNode->subtreeSize = 1; // Khởi tạo với kích thước là 1
+    newNode->left = newNode->right = newNode->parent = NULL;
     return newNode;
 }
 
@@ -43,26 +48,33 @@ void addInfo(PlayerNode* node, int server_id, long unix_time_of_ban) {
     newInfo->next = node->info;
     node->info = newInfo;
 }
+int treeSize(PlayerNode* root) {
+    if (root == NULL) {
+        return 0;
+    }
+    return root->subtreeSize;
+}
 
 // Hàm chèn key và trả về độ cao của node
-int InsertKey(PlayerNode** root, char* username, int server_id, long unix_time_of_ban, PlayerNode* parent)
- {
+int InsertKey(PlayerNode** root, PlayerNode** newNode, char* username, int server_id, long unix_time_of_ban, PlayerNode* parent) {
     if (*root == NULL) {
         *root = createPlayerNode(username, server_id, unix_time_of_ban);
         (*root)->parent = parent; 
+        *newNode = *root; // Cập nhật newNode
         return 1; // Độ cao của node mới là 1
     }
     
     int cmp = strcmp(username, (*root)->username);
     if (cmp == 0) {
         addInfo(*root, server_id, unix_time_of_ban);
+        *newNode = *root; // Cập nhật newNode
         return (*root)->height; // Trả về độ cao hiện tại của node
     } else if (cmp < 0) {
-        int leftHeight = InsertKey(&(*root)->left, username, server_id, unix_time_of_ban);
+        int leftHeight = InsertKey(&(*root)->left, newNode, username, server_id, unix_time_of_ban, *root);
         (*root)->height = 1 + leftHeight;
         (*root)->subtreeSize = 1 + treeSize((*root)->left) + treeSize((*root)->right);  // Cập nhật kích thước
     } else {
-        int rightHeight = InsertKey(&(*root)->right, username, server_id, unix_time_of_ban);
+        int rightHeight = InsertKey(&(*root)->right, newNode, username, server_id, unix_time_of_ban, *root);
         (*root)->height = 1 + rightHeight;
         (*root)->subtreeSize = 1 + treeSize((*root)->left) + treeSize((*root)->right);  // Cập nhật kích thước
     }
@@ -73,7 +85,7 @@ int InsertKey(PlayerNode** root, char* username, int server_id, long unix_time_o
 // Hàm giả định để tìm scapegoat
 PlayerNode* FindScapegoat(PlayerNode* n, float alpha) {
     int totalSize = 1;
-
+    
     while (n->parent != NULL) {
         PlayerNode* parent = n->parent;
         int siblingSize = parent->subtreeSize - n->subtreeSize - 1;
@@ -88,18 +100,103 @@ PlayerNode* FindScapegoat(PlayerNode* n, float alpha) {
 
     return NULL;
 }
-
-
-// Hàm giả định để rebuild tree
-void RebuildTree(int size, PlayerNode* scapegoat) {
-    // Logic của bạn để rebuild tree
+void Flatten_Tree(PlayerNode* root, PlayerNode** head) {
+    if (root == NULL) return;
+    
+    Flatten_Tree(root->right, head);
+    
+    root->right = *head;
+    if (*head != NULL) {
+        (*head)->parent = root;
+    }
+    *head = root;
+    
+    Flatten_Tree(root->left, head);
 }
 
-void run_scapegoat(const char *file_name) {
+// Hàm cập nhật chiều cao của nút
+void UpdateHeight(PlayerNode* node) {
+    if (node == NULL) return;
+    int leftHeight = (node->left != NULL) ? node->left->height : 0;
+    int rightHeight = (node->right != NULL) ? node->right->height : 0;
+    node->height = 1 + ((leftHeight > rightHeight) ? leftHeight : rightHeight);
+}
+
+PlayerNode* Build_Height_Balanced_Tree(int size, PlayerNode** head) {
+    if (size == 0) return NULL;
+
+    int leftSize = (size - 1) / 2;
+    int rightSize = size - 1 - leftSize;
+
+    PlayerNode* leftChild = Build_Height_Balanced_Tree(leftSize, head);
+
+    PlayerNode* root = *head;
+    *head = (*head)->right;
+
+    root->left = leftChild;
+    if (leftChild != NULL) {
+        leftChild->parent = root;
+    }
+
+    root->right = Build_Height_Balanced_Tree(rightSize, head);
+    if (root->right != NULL) {
+        root->right->parent = root;
+    }
+
+    UpdateHeight(root); // Cập nhật chiều cao
+    root->subtreeSize = size; // Cập nhật kích thước
+
+    return root;
+}
+
+void RebuildTree(int size, PlayerNode** root, PlayerNode* scapegoat) {
+    PlayerNode* head = NULL;
+    Flatten_Tree(scapegoat, &head);
+
+    PlayerNode* newRoot = Build_Height_Balanced_Tree(size, &head);
+
+    // Cập nhật cây mới vào vị trí của scapegoat trong cây gốc
+    if (scapegoat->parent != NULL) {
+        if (scapegoat->parent->left == scapegoat) {
+            scapegoat->parent->left = newRoot;
+        } else {
+            scapegoat->parent->right = newRoot;
+        }
+        newRoot->parent = scapegoat->parent;
+    } else {
+        *root = newRoot;  // Cập nhật nút gốc nếu cần
+        newRoot->parent = NULL;
+    }
+}
+
+PlayerNode* SearchPlayer(PlayerNode* root, char* username) {
+    while (root != NULL) {
+        int cmp = strcmp(username, root->username);
+        if (cmp == 0) {
+            return root;
+        } else if (cmp < 0) {
+            root = root->left;
+        } else {
+            root = root->right;
+        }
+    }
+    return NULL;
+}
+
+bool idExists(int* arr, int n, int target) {
+    for (int i = 0; i < n; ++i) {
+        if (arr[i] == target) {
+            return true;
+        }
+    }
+    return false;
+}
+
+PlayerNode* run_scapegoat(const char *file_name) {
     FILE *file = fopen(file_name, "r");
     if (file == NULL) {
         printf("Could not open file: %s\n", file_name);
-        return;
+        return NULL;  // Thêm dòng này để trả về NULL khi có lỗi
     }
     
     PlayerNode* root = NULL;  // Root của cây
@@ -108,37 +205,31 @@ void run_scapegoat(const char *file_name) {
     char username[50];
     int server_id;
     long unix_time_of_ban;
+    PlayerNode* newNode = NULL;
     while (fscanf(file, "%s %d %ld\n", username, &server_id, &unix_time_of_ban) != EOF) {
-        int height = InsertKey(&root, username, server_id, unix_time_of_ban, NULL);
+        int height = InsertKey(&root, &newNode, username, server_id, unix_time_of_ban, NULL);
         
+        // Cập nhật h_alpha
+        h_alpha = (height > h_alpha) ? height : h_alpha;
+
         if (height == -1) {
             continue;  // không thêm được
         } else if (height > h_alpha) {
-            PlayerNode* scapegoat = FindScapegoat(root, username);
-            if (scapegoat != NULL) {
-                // Logic để tính size của cây con có gốc là scapegoat
-                int size = 0;
-                RebuildTree(size, scapegoat);
+            if (newNode != NULL) {
+                PlayerNode* scapegoat = FindScapegoat(newNode, ALPHA);
+                if (scapegoat != NULL) {
+                    int size = scapegoat->subtreeSize;
+                    RebuildTree(size, &root, scapegoat);
+                }
             }
         }
     }
 
     fclose(file);
-    printf("Scapegoat program finished.\n");
+    
+    return root;  // Trả về root của cây
 }
 
-
-// Function to handle the btree program
-void run_btree(const char *file_name) {
-    FILE *file = fopen(file_name, "r");
-    if (file == NULL) {
-        printf("Could not open file: %s\n", file_name);
-        return;
-    }
-    // Your code to read and process the file goes here
-    fclose(file);
-    printf("Btree program finished.\n");
-}
 
 int main(int argc, char *argv[]) {
     if (argc < 3) {
@@ -147,9 +238,38 @@ int main(int argc, char *argv[]) {
     }
 
     if (strcmp(argv[1], "scapegoat") == 0) {
-        run_scapegoat(argv[2]);
+        PlayerNode* root = run_scapegoat(argv[2]);
+        char username[50];
+        while (scanf("%49s", username) != EOF) {
+            PlayerNode* player = SearchPlayer(root, username);
+            if (player != NULL) {
+                Info* info = player->info;
+                int server_count = 0;
+                int unique_server_count = 0;
+                long most_recent_time = 0;
+
+                int* unique_servers = malloc(100 * sizeof(int)); // Giả sử có tối đa 100 server khác nhau
+
+                // Đếm số server và tìm thời gian bị cấm gần đây nhất
+                while (info != NULL) {
+                    
+                    if (!idExists(unique_servers, unique_server_count, info->server_id)) {
+                        unique_servers[unique_server_count++] = info->server_id;
+                        server_count++;
+                    }
+                    if (info->unix_time_of_ban > most_recent_time) {
+                        most_recent_time = info->unix_time_of_ban;
+                    }
+                    info = info->next;
+                }
+                printf("%s was banned from %d servers. most recently on: %ld\n", username, server_count, most_recent_time);
+            } else {
+                printf("%s is not currently banned from any servers.\n", username);
+            }
+        }
+
     } else if (strcmp(argv[1], "btree") == 0) {
-        run_btree(argv[2]);
+        // Code cho btree
     } else {
         printf("Invalid program name. Use 'scapegoat' or 'btree'.\n");
         return 1;
