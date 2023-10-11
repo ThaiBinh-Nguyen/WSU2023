@@ -48,6 +48,7 @@ void addInfo(PlayerNode* node, int server_id, long unix_time_of_ban) {
     newInfo->next = node->info;
     node->info = newInfo;
 }
+
 int treeSize(PlayerNode* root) {
     if (root == NULL) {
         return 0;
