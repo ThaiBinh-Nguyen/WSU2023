@@ -5,6 +5,7 @@
 #include <stdbool.h>
 
 #define ALPHA 0.57
+#define max(a,b) ((a) > (b) ? (a) : (b))
 
 typedef struct Info {
     int server_id;
@@ -21,6 +22,14 @@ typedef struct PlayerNode {
     struct PlayerNode* left;
     struct PlayerNode* right;
 } PlayerNode;
+
+typedef struct AVLNode {
+    char username[50];           // Tên người chơi
+    Info* info;           // Danh sách các lần người chơi bị cấm
+    int height;                  // Chiều cao của node (dùng để kiểm tra và duy trì tính cân bằng)
+    struct AVLNode* left;   // Node con bên trái
+    struct AVLNode* right;  // Node con bên phải
+} AVLNode;
 
 // Hàm để tạo node Info mới
 Info* createInfo(int server_id, long unix_time_of_ban) {
@@ -231,6 +240,131 @@ PlayerNode* run_scapegoat(const char *file_name) {
     return root;  // Trả về root của cây
 }
 
+int Height(AVLNode* node) {
+    if (node == NULL) {
+        return 0;
+    }
+    return node->height;
+}
+
+int BalanceFactor(AVLNode* node) {
+    if (node == NULL) {
+        return 0;
+    }
+    return Height(node->left) - Height(node->right);
+}
+
+AVLNode* RightRotate(AVLNode* y) {
+    AVLNode* x = y->left;
+    AVLNode* T3 = x->right;
+
+    // Thực hiện quay
+    x->right = y;
+    y->left = T3;
+
+    // Cập nhật chiều cao
+    y->height = 1 + max(Height(y->left), Height(y->right));
+    x->height = 1 + max(Height(x->left), Height(x->right));
+
+    return x;
+}
+
+AVLNode* LeftRotate(AVLNode* x) {
+    AVLNode* y = x->right;
+    AVLNode* T2 = y->left;
+
+    // Thực hiện quay
+    y->left = x;
+    x->right = T2;
+
+    // Cập nhật chiều cao
+    x->height = 1 + max(Height(x->left), Height(x->right));
+    y->height = 1 + max(Height(y->left), Height(y->right));
+
+    return y;
+}
+
+AVLNode* InsertAVL(AVLNode* node, char* username, int server_id, long unix_time_of_ban) {
+    // 1. Chèn bình thường như BST
+    if (node == NULL) {
+        AVLNode* newNode = (AVLNode*)malloc(sizeof(AVLNode));
+        strncpy(newNode->username, username, 50);
+        newNode->info = (Info*)malloc(sizeof(Info));
+        newNode->info->server_id = server_id;
+        newNode->info->unix_time_of_ban = unix_time_of_ban;
+        newNode->info->next = NULL;
+        newNode->height = 1;  // Node mới có chiều cao = 1
+        newNode->left = newNode->right = NULL;
+        return newNode;
+    }
+
+    if (strcmp(username, node->username) < 0) {
+        node->left = InsertAVL(node->left, username, server_id, unix_time_of_ban);
+    } else if (strcmp(username, node->username) > 0) {
+        node->right = InsertAVL(node->right, username, server_id, unix_time_of_ban);
+    } else {
+        // Trường hợp username đã tồn tại, thêm thông tin mới vào danh sách
+        Info* newInfo = (Info*)malloc(sizeof(Info));
+        newInfo->server_id = server_id;
+        newInfo->unix_time_of_ban = unix_time_of_ban;
+        newInfo->next = node->info;
+        node->info = newInfo;
+        return node;
+    }
+
+    // 2. Cập nhật chiều cao của node cha sau khi chèn
+    node->height = 1 + max(Height(node->left), Height(node->right));
+
+    // 3. Lấy yếu tố cân bằng để kiểm tra liệu node này có trở nên mất cân bằng không
+    int balance = BalanceFactor(node);
+
+    // 4. Nếu mất cân bằng, có 4 trường hợp:
+
+    // Trường hợp Left Left
+    if (balance > 1 && strcmp(username, node->left->username) < 0) {
+        return RightRotate(node);
+    }
+
+    // Trường hợp Right Right
+    if (balance < -1 && strcmp(username, node->right->username) > 0) {
+        return LeftRotate(node);
+    }
+
+    // Trường hợp Left Right
+    if (balance > 1 && strcmp(username, node->left->username) > 0) {
+        node->left = LeftRotate(node->left);
+        return RightRotate(node);
+    }
+
+    // Trường hợp Right Left
+    if (balance < -1 && strcmp(username, node->right->username) < 0) {
+        node->right = RightRotate(node->right);
+        return LeftRotate(node);
+    }
+
+    return node;
+}
+
+
+AVLNode* run_avl(const char *file_name) {
+    FILE *file = fopen(file_name, "r");
+    if (file == NULL) {
+        printf("Could not open file: %s\n", file_name);
+        return NULL;
+    }
+
+    AVLNode* root = NULL;
+    char username[50];
+    int server_id;
+    long unix_time_of_ban;
+
+    while (fscanf(file, "%s %d %ld\n", username, &server_id, &unix_time_of_ban) != EOF) {
+        root = InsertAVL(root, username, server_id, unix_time_of_ban);
+    }
+
+    fclose(file);
+    return root;
+}
 
 int main(int argc, char *argv[]) {
     if (argc < 3) {
@@ -269,8 +403,43 @@ int main(int argc, char *argv[]) {
             }
         }
 
-    } else if (strcmp(argv[1], "btree") == 0) {
-        // Code cho btree
+    } else if (strcmp(argv[1], "avl") == 0) {
+        AVLNode* root = run_avl(argv[2]);
+
+        if (!root) {
+            printf("Failed to build the AVL tree.\n");
+            return 1;
+        }
+
+        char username[50];
+        while (scanf("%49s", username) != EOF) {
+            AVLNode* player = SearchAVL(root, username);
+            if (player != NULL) {
+                Info* info = player->info;
+                int server_count = 0;
+                int unique_server_count = 0;
+                long most_recent_time = 0;
+
+                int* unique_servers = malloc(100 * sizeof(int)); // Giả sử có tối đa 100 server khác nhau
+
+                // Đếm số server và tìm thời gian bị cấm gần đây nhất
+                while (info != NULL) {
+                    if (!idExists(unique_servers, unique_server_count, info->server_id)) {
+                        unique_servers[unique_server_count++] = info->server_id;
+                        server_count++;
+                    }
+                    if (info->unix_time_of_ban > most_recent_time) {
+                        most_recent_time = info->unix_time_of_ban;
+                    }
+                    info = info->next;
+                }
+                printf("%s was banned from %d servers. most recently on: %ld\n", username, server_count, most_recent_time);
+
+                free(unique_servers);
+            } else {
+                printf("%s is not currently banned from any servers.\n", username);
+            }
+        }
     } else {
         printf("Invalid program name. Use 'scapegoat' or 'btree'.\n");
         return 1;
