@@ -11,7 +11,7 @@ int BalanceFactor(AVLNode* node) {
     if (node == NULL) {
         return 0;
     }
-    return Height(node->left) - Height(node->right);
+    return Height(node->right) - Height(node->left);
 }
 
 AVLNode* RightRotate(AVLNode* y) {
@@ -93,34 +93,39 @@ AVLNode* InsertAVL(AVLNode* node, char* username, int server_id, long unix_time_
         return node;
     }
 
-    // 2. Cập nhật chiều cao của node cha sau khi chèn
-    node->height = 1 + max(Height(node->left), Height(node->right));
+        // 2. Cập nhật chiều cao của node cha sau khi chèn
+        if (Height(node->left) > Height(node->right)) {
+            node->height = 1 + Height(node->left);
+        } else {
+            node->height = 1 + Height(node->right);
+        }
+
 
     // 3. Lấy yếu tố cân bằng để kiểm tra liệu node này có trở nên mất cân bằng không
     int balance = BalanceFactor(node);
 
     // 4. Nếu mất cân bằng, có 4 trường hợp:
-
-    // Trường hợp Left Left
-    if (balance > 1 && strcmp(username, node->left->username) < 0) {
-        return RightRotate(node);
-    }
-
-    // Trường hợp Right Right
-    if (balance < -1 && strcmp(username, node->right->username) > 0) {
+    
+    // Trường hợp Right Right (đã đổi ngược lại từ Left Left)
+    if (balance > 1 && strcmp(username, node->right->username) > 0) {
         return LeftRotate(node);
     }
 
-    // Trường hợp Left Right
-    if (balance > 1 && strcmp(username, node->left->username) > 0) {
-        node->left = LeftRotate(node->left);
+    // Trường hợp Left Left (đã đổi ngược lại từ Right Right)
+    if (balance < -1 && strcmp(username, node->left->username) < 0) {
         return RightRotate(node);
     }
 
-    // Trường hợp Right Left
-    if (balance < -1 && strcmp(username, node->right->username) < 0) {
+    // Trường hợp Right Left (đã đổi ngược lại từ Left Right)
+    if (balance > 1 && strcmp(username, node->right->username) < 0) {
         node->right = RightRotate(node->right);
         return LeftRotate(node);
+    }
+
+    // Trường hợp Left Right (đã đổi ngược lại từ Right Left)
+    if (balance < -1 && strcmp(username, node->left->username) > 0) {
+        node->left = LeftRotate(node->left);
+        return RightRotate(node);
     }
 
     return node;
