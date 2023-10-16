@@ -1,3 +1,13 @@
+/* Full Name: Thai Binh Nguyen
+   Course: CS330
+   Project 2: LU Factorization Engine
+   Date: 10-16-2023
+*/
+
+/* Identifies the project:
+  My Project will be creating a C99 library for solving linear equations of the form Ax = b using 
+  LU factorization with partial pivoting using C programming language.
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
