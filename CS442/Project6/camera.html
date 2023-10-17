@@ -134,6 +134,98 @@
             gl.vertexAttribPointer(atr_coord, 3, gl.FLOAT, false, 12, 0); // 24 bytes per vertex
             gl.enableVertexAttribArray(atr_coord);
 
+            class Camera {
+                constructor() {
+                    this.position = [0, 0, 0];  // x, y, z
+                    this.rotation = [0, 0, 0];  // pitch, yaw, roll
+                }
+            
+                // Phương thức để di chuyển camera
+                moveForward(time_delta) {
+                    const distance = 1 * time_delta;
+                    this.position[2] -= distance;  // Move closer to the cube
+                }
+            
+                moveBackward(time_delta) {
+                    const distance = 1 * time_delta;
+                    this.position[2] += distance;  // Move away from the cube
+                }
+            
+                moveLeft(time_delta) {
+                    const distance = 1 * time_delta;
+                    this.position[1] -= distance;  // Move camera to the left
+                    this.position[2] -= distance;
+                }
+                
+                
+            
+                moveRight(time_delta) {
+                    const distance = 1 * time_delta;
+                    this.position[0] += distance;  // Move camera to the right
+                }
+            
+                moveUp(time_delta) {
+                    const distance = 1 * time_delta; // Adjust the multiplier as needed
+                    this.position[1] += distance;
+                }
+            
+                moveDown(time_delta) {
+                    const distance = 1 * time_delta; // Adjust the multiplier as needed
+                    this.position[1] -= distance;
+                }
+                rollLeft(time_delta) {
+                    const angle = -0.1 * time_delta; // Adjust the multiplier as needed
+                    this.rotation[2] += angle;
+                }
+                
+                rollRight(time_delta) {
+                    const angle = 0.1 * time_delta; // Adjust the multiplier as needed
+                    this.rotation[2] -= angle;
+                }
+                
+                rotateLeft(time_delta) {
+                    const angle = 0.1 * time_delta; // Adjust the multiplier as needed
+                    this.rotation[1] -= angle;
+                }
+                
+                rotateRight(time_delta) {
+                    const angle = 0.1 * time_delta; // Adjust the multiplier as needed
+                    this.rotation[1] += angle;
+                }
+                
+                rotateUp(time_delta) {
+                    const angle = 0.1 * time_delta; // Adjust the multiplier as needed
+                    this.rotation[0] -= angle;
+                }
+                
+                rotateDown(time_delta) {
+                    const angle = 0.1 * time_delta; // Adjust the multiplier as needed
+                    this.rotation[0] += angle;
+                }
+
+
+                // Phương thức để tính toán ma trận view
+                getViewMatrix() {
+                    // Create the rotation matrices
+                    let R = Mat4.rotation_xy(this.rotation[2]);  // Roll
+                    let P = Mat4.rotation_yz(this.rotation[0]);  // Pitch
+                    let Y = Mat4.rotation_xz(this.rotation[1]);  // Yaw
+                
+                    // Create the translation matrix
+                    let T = Mat4.translation(this.position[0], this.position[1], this.position[2]);
+                
+                    // Compute the camera model matrix
+                    let camera_model = T.mul(Y).mul(P).mul(R);
+                
+                    // Compute the view matrix as the inverse of the camera model matrix
+                    let view = camera_model.inverse();  // You'll need to implement the 'inverse' method in your Mat4 class
+                
+                    return view;
+                }
+                
+            }
+            
+
             class Mat4 {
                 constructor( data ) {
                     if( data == null ) {
@@ -150,22 +242,147 @@
                 }
             
                 /**
-                 * Returns a rotation matrix in the XZ plane, rotating by the given number of turns
-                 * @param {number} turns amount to rotate by
-                 * @returns {Mat4}  
-                 */
-                static rotation( turns ) {
-            
+                * Returns a rotation matrix in the XY plane, rotating by the given number of turns. 
+                * @param {number} turns amount to rotate by
+                * @returns {Mat4}  
+                */
+                static rotation_xy( turns ) {
+                    
                     // return the rotation matrix
                     const Angle_from_Turns = 2 * Math.PI * turns;
                     const Cosine = Math.cos(Angle_from_Turns);
                     const Sine = Math.sin(Angle_from_Turns);
                     return new Mat4([
-                        Cosine, 0, Sine, 0,
-                        0, 1, 0, 0,
-                        -Sine, 0, Cosine, 0,
-                        0, 0, 0, 1
+                        Cosine, Sine, 0, 0,
+                        -Sine,  Cosine, 0, 0,
+                        0,  0, 1, 0,
+                        0,  0, 0, 1
                     ]);
+                }
+
+                /**
+                * Returns a rotation matrix in the XZ plane, rotating by the given number of turns
+                * @param {number} turns amount to rotate by
+                * @returns {Mat4}  
+                */
+                static rotation_xz( turns ) {
+
+                    // return the rotation matrix
+                    const Angle_from_Turns = 2 * Math.PI * turns;
+                    const Cosine = Math.cos(Angle_from_Turns);
+                    const Sine = Math.sin(Angle_from_Turns);
+                    return new Mat4([
+                        Cosine, 0,  Sine, 0,
+                        0, 1,  0, 0,
+                        -Sine, 0,  Cosine, 0,
+                        0, 0,  0, 1
+                    ]);
+                }
+
+                /**
+                * Returns a rotation matrix in the YZ plane, rotating by the given number of turns
+                * @param {number} turns amount to rotate by
+                * @returns {Mat4}  
+                */
+                static rotation_yz( turns ) {
+                    
+                    // return the rotation matrix
+                    const Angle_from_Turns = 2 * Math.PI * turns;
+                    const Cosine = Math.cos(Angle_from_Turns);
+                    const Sine = Math.sin(Angle_from_Turns);
+                    return new Mat4([
+                        1, 0,  0, 0,
+                        0, Cosine, Sine, 0,
+                        0, -Sine,  Cosine, 0,
+                        0, 0,  0, 1
+                    ]);
+                }
+
+                inverse() {
+                    // var A2323 = m.m22 * m.m33 - m.m23 * m.m32 ;
+                    const A2323 = this.rc(2, 2) * this.rc(3, 3) - this.rc(2, 3) * this.rc(3, 2); 
+                    
+                    // var A1323 = m.m21 * m.m33 - m.m23 * m.m31 ;
+                    const A1323 = this.rc(2, 1) * this.rc(3, 3) - this.rc(2, 3) * this.rc(3, 1);
+                    
+                    // var A1223 = m.m21 * m.m32 - m.m22 * m.m31 ;
+                    const A1223 = this.rc(2, 1) * this.rc(3, 2) - this.rc(2, 2) * this.rc(3, 1);
+
+                    // var A0323 = m.m20 * m.m33 - m.m23 * m.m30 ;
+                    const A0323 = this.rc(2, 0) * this.rc(3, 3) - this.rc(2, 3) * this.rc(3, 0);
+
+                    // var A0223 = m.m20 * m.m32 - m.m22 * m.m30 ;
+                    const A0223 = this.rc(2, 0) * this.rc(3, 2) - this.rc(2, 2) * this.rc(3, 0);
+
+                    // var A0123 = m.m20 * m.m31 - m.m21 * m.m30 ;
+                    const A0123 = this.rc(2, 0) * this.rc(3, 1) - this.rc(2, 1) * this.rc(3, 0);
+
+                    // var A2313 = m.m12 * m.m33 - m.m13 * m.m32 ;
+                    const A2313 = this.rc(1, 2) * this.rc(3, 3) - this.rc(1, 3) * this.rc(3, 2);
+
+                    // var A1313 = m.m11 * m.m33 - m.m13 * m.m31 ;
+                    const A1313 = this.rc(1, 1) * this.rc(3, 3) - this.rc(1, 3) * this.rc(3, 1);
+
+                    // var A1213 = m.m11 * m.m32 - m.m12 * m.m31 ;
+                    const A1213 = this.rc(1, 1) * this.rc(3, 2) - this.rc(1, 2) * this.rc(3, 1);
+
+                    // var A2312 = m.m12 * m.m23 - m.m13 * m.m22 ;
+                    const A2312 = this.rc(1, 2) * this.rc(2, 3) - this.rc(1, 3) * this.rc(2, 2);
+
+                    // var A1312 = m.m11 * m.m23 - m.m13 * m.m21 ;
+                    const A1312 = this.rc(1, 1) * this.rc(2, 3) - this.rc(1, 3) * this.rc(2, 1);
+
+                    // var A1212 = m.m11 * m.m22 - m.m12 * m.m21 ;
+                    const A1212 = this.rc(1, 1) * this.rc(2, 2) - this.rc(1, 2) * this.rc(2, 1);
+
+                    // var A0313 = m.m10 * m.m33 - m.m13 * m.m30 ;
+                    const A0313 = this.rc(1, 0) * this.rc(3, 3) - this.rc(1, 3) * this.rc(3, 0);
+
+                    // var A0213 = m.m10 * m.m32 - m.m12 * m.m30 ;
+                    const A0213 = this.rc(1, 0) * this.rc(3, 2) - this.rc(1, 2) * this.rc(3, 0);
+                    
+                    // var A0312 = m.m10 * m.m23 - m.m13 * m.m20 ;
+                    const A0312 = this.rc(1, 0) * this.rc(2, 3) - this.rc(1, 3) * this.rc(2, 0);
+
+                    // var A0212 = m.m10 * m.m22 - m.m12 * m.m20 ;
+                    const A0212 = this.rc(1, 0) * this.rc(2, 2) - this.rc(1, 2) * this.rc(2, 0);
+
+                    // var A0113 = m.m10 * m.m31 - m.m11 * m.m30 ;
+                    const A0113 = this.rc(1, 0) * this.rc(3, 1) - this.rc(1, 1) * this.rc(3, 0);
+                    
+                    // var A0112 = m.m10 * m.m21 - m.m11 * m.m20 ;
+                    const A0112 = this.rc(1, 0) * this.rc(2, 1) - this.rc(1, 1) * this.rc(2, 0);
+                    
+
+                    const det = 
+                    this.rc(0, 0) * ( this.rc(1, 1) * A2323 - this.rc(1, 2) * A1323 + this.rc(1, 3) * A1223 ) -
+                    this.rc(0, 1) * ( this.rc(1, 0) * A2323 - this.rc(1, 2) * A0323 + this.rc(1, 3) * A0223 ) +
+                    this.rc(0, 2) * ( this.rc(1, 0) * A1323 - this.rc(1, 1) * A0323 + this.rc(1, 3) * A0123 ) -
+                    this.rc(0, 3) * ( this.rc(1, 0) * A1223 - this.rc(1, 1) * A0223 + this.rc(1, 2) * A0123 );
+
+                    const dr = 1.0 / det;
+
+                    return new Mat4( [
+                        dr * ( this.rc(1, 1) * A2323 - this.rc(1, 2) * A1323 + this.rc(1, 3) * A1223 ),
+                        dr *-( this.rc(0, 1) * A2323 - this.rc(0, 2) * A1323 + this.rc(0, 3) * A1223 ),
+                        dr * ( this.rc(0, 1) * A2313 - this.rc(0, 2) * A1313 + this.rc(0, 3) * A1213 ),
+                        dr *-( this.rc(0, 1) * A2312 - this.rc(0, 2) * A1312 + this.rc(0, 3) * A1212 ),
+
+                        dr *-( this.rc(1, 0) * A2323 - this.rc(1, 2) * A0323 + this.rc(1, 3) * A0223 ),
+                        dr * ( this.rc(0, 0) * A2323 - this.rc(0, 2) * A0323 + this.rc(0, 3) * A0223 ),
+                        dr *-( this.rc(0, 0) * A2313 - this.rc(0, 2) * A0313 + this.rc(0, 3) * A0213 ),
+                        dr * ( this.rc(0, 0) * A2312 - this.rc(0, 2) * A0312 + this.rc(0, 3) * A0212 ),
+
+                        dr * ( this.rc(1, 0) * A1323 - this.rc(1, 1) * A0323 + this.rc(1, 3) * A0123 ),
+                        dr *-( this.rc(0, 0) * A1323 - this.rc(0, 1) * A0323 + this.rc(0, 3) * A0123 ),
+                        dr * ( this.rc(0, 0) * A1313 - this.rc(0, 1) * A0313 + this.rc(0, 3) * A0113 ),
+                        dr *-( this.rc(0, 0) * A1312 - this.rc(0, 1) * A0312 + this.rc(0, 3) * A0112 ),
+
+                        dr *-( this.rc(1, 0) * A1223 - this.rc(1, 1) * A0223 + this.rc(1, 2) * A0123 ),
+                        dr * ( this.rc(0, 0) * A1223 - this.rc(0, 1) * A0223 + this.rc(0, 2) * A0123 ),
+                        dr *-( this.rc(0, 0) * A1213 - this.rc(0, 1) * A0213 + this.rc(0, 2) * A0113 ),
+                        dr * ( this.rc(0, 0) * A1212 - this.rc(0, 1) * A0212 + this.rc(0, 2) * A0112 ),
+                    ] );
                 }
                 static scaling(sx, sy, sz) {
                     return new Mat4([
@@ -252,15 +469,66 @@
 
             }
 
+            // Khởi tạo camera và theo dõi các phím đã nhấn
+            let camera = new Camera();
+            let keysPressed = {};
+            let currentViewMatrix;
+
+            // Lắng nghe sự kiện từ bàn phím
+            document.addEventListener('keydown', function(event) {
+                keysPressed[event.code] = true;
+            });
+            document.addEventListener('keyup', function(event) {
+                keysPressed[event.code] = false;
+            });
+
+    
+            function updateCamera(time_delta) {
+                // Cập nhật trạng thái camera dựa trên các phím đã nhấn
+                if (keysPressed['KeyW']) {
+                    camera.moveForward(time_delta);
+                }
+                if (keysPressed['KeyS']) {
+                    camera.moveBackward(time_delta);
+                }
+                if (keysPressed['KeyA']) {
+                    camera.moveLeft(time_delta);
+                }
+                if (keysPressed['KeyD']) {
+                    camera.moveRight(time_delta);
+                }
+                if (keysPressed['Space']) {
+                    camera.moveUp(time_delta);
+                }
+                if (keysPressed['KeyC']) {
+                    camera.moveDown(time_delta);
+                }
+                if (keysPressed['KeyQ']) {
+                    camera.rollLeft(time_delta);
+                }
+                if (keysPressed['KeyE']) {
+                    camera.rollRight(time_delta);
+                }
+                if (keysPressed['ArrowLeft']) {
+                    camera.rotateLeft(time_delta);
+                }
+                if (keysPressed['ArrowRight']) {
+                    camera.rotateRight(time_delta);
+                }
+                if (keysPressed['ArrowUp']) {
+                    camera.rotateUp(time_delta);
+                }
+                if (keysPressed['ArrowDown']) {
+                    camera.rotateDown(time_delta);
+                }
+            
+            }
+
             function set_uniform_matrix4(gl, program, name, data) {
                 const loc = gl.getUniformLocation(program, name);
                 gl.uniformMatrix4fv(loc, false, data);
             }
 
-            //Speed of Rotation
-            const ROTATION_SPEED = - 0.125;
-
-            let rotation_amnt = 0.0;
 
             let last_update = performance.now();
 
@@ -270,30 +538,24 @@
  
                 // Calculate time delta
                 let time_delta = (now - last_update) / 1000;
+
                 last_update = now;
 
-                // Update rotation amounts
-                rotation_amnt += ROTATION_SPEED * time_delta;
+                updateCamera(time_delta);
 
-                // Keep the rotation amount in the range [0, 1]
-                rotation_amnt %= 1.0;
-
+                const viewMatrix = camera.getViewMatrix();
             
                 // Create a projection matrix
                 let fov = Math.PI / 2; // 90 degrees
                 let aspect = canvas.width / canvas.height;
                 let near = 1;
-                let far = 1001;
+                let far = 2001;
                 let projectionMatrix = Mat4.perspective(fov, aspect, near, far);
 
                 let scalingMatrix = Mat4.scaling(1.2,1.2,1.2);
-                
-                let matrix = Mat4.rotation(rotation_amnt);
-
                 let translationMatrix = Mat4.translation(0,0,2.8);
-                
-                let model = matrix.mul(scalingMatrix.mul(projectionMatrix.mul(translationMatrix)));
-               
+                let model = viewMatrix.mul(scalingMatrix.mul(projectionMatrix.mul(translationMatrix)));
+
                 // Update the shader uniform
                 set_uniform_matrix4(gl, shader_program, "modelview", model.data);
 
