@@ -133,6 +133,55 @@
             let atr_coord = gl.getAttribLocation(shader_program, "coordinates");
             gl.vertexAttribPointer(atr_coord, 3, gl.FLOAT, false, 12, 0); // 24 bytes per vertex
             gl.enableVertexAttribArray(atr_coord);
+            class Cube {
+                constructor() {
+                    // Ma trận biến đổi ban đầu của cube
+                    this.transformationMatrix = new Mat4();  // Giả định rằng constructor của Mat4 tạo ma trận đơn vị
+                }
+            
+                // Phương thức để di chuyển cube
+                moveForward(time_delta) {
+                    const distance = 1 * time_delta;
+                    const translationMatrix = Mat4.translation(0, 0, -distance);
+                    this.transformationMatrix = this.transformationMatrix.mul(translationMatrix);
+                }
+            
+                moveBackward(time_delta) {
+                    const distance = 1 * time_delta;
+                    const translationMatrix = Mat4.translation(0, 0, distance);
+                    this.transformationMatrix = this.transformationMatrix.mul(translationMatrix);
+                }
+            
+                moveLeft(time_delta) {
+                    const distance = 1 * time_delta;
+                    const translationMatrix = Mat4.translation(-distance, 0, 0);
+                    this.transformationMatrix = this.transformationMatrix.mul(translationMatrix);
+                }
+                
+                moveRight(time_delta) {
+                    const distance = 1 * time_delta;
+                    const translationMatrix = Mat4.translation(distance, 0, 0);
+                    this.transformationMatrix = this.transformationMatrix.mul(translationMatrix);
+                }
+            
+                moveUp(time_delta) {
+                    const distance = 1 * time_delta;
+                    const translationMatrix = Mat4.translation(0, distance, 0);
+                    this.transformationMatrix = this.transformationMatrix.mul(translationMatrix);
+                }
+            
+                moveDown(time_delta) {
+                    const distance = 1 * time_delta;
+                    const translationMatrix = Mat4.translation(0, -distance, 0);
+                    this.transformationMatrix = this.transformationMatrix.mul(translationMatrix);
+                }
+            
+                getModelMatrix() {
+                    // Trả lại ma trận biến đổi hiện tại của cube
+                    return this.transformationMatrix;
+                }
+            }
+            
 
             class Camera {
                 constructor() {
@@ -140,39 +189,6 @@
                     this.rotation = [0, 0, 0];  // pitch, yaw, roll
                 }
             
-                // Phương thức để di chuyển camera
-                moveForward(time_delta) {
-                    const distance = 1 * time_delta;
-                    this.position[2] -= distance;  // Move closer to the cube
-                }
-            
-                moveBackward(time_delta) {
-                    const distance = 1 * time_delta;
-                    this.position[2] += distance;  // Move away from the cube
-                }
-            
-                moveLeft(time_delta) {
-                    const distance = 1 * time_delta;
-                    this.position[1] -= distance;  // Move camera to the left
-                    this.position[2] -= distance;
-                }
-                
-                
-            
-                moveRight(time_delta) {
-                    const distance = 1 * time_delta;
-                    this.position[0] += distance;  // Move camera to the right
-                }
-            
-                moveUp(time_delta) {
-                    const distance = 1 * time_delta; // Adjust the multiplier as needed
-                    this.position[1] += distance;
-                }
-            
-                moveDown(time_delta) {
-                    const distance = 1 * time_delta; // Adjust the multiplier as needed
-                    this.position[1] -= distance;
-                }
                 rollLeft(time_delta) {
                     const angle = -0.1 * time_delta; // Adjust the multiplier as needed
                     this.rotation[2] += angle;
@@ -471,6 +487,7 @@
 
             // Khởi tạo camera và theo dõi các phím đã nhấn
             let camera = new Camera();
+            let cube = new Cube();
             let keysPressed = {};
             let currentViewMatrix;
 
@@ -482,27 +499,30 @@
                 keysPressed[event.code] = false;
             });
 
-    
-            function updateCamera(time_delta) {
-                // Cập nhật trạng thái camera dựa trên các phím đã nhấn
+            function updateCube(time_delta){
                 if (keysPressed['KeyW']) {
-                    camera.moveForward(time_delta);
+                    cube.moveForward(time_delta);
                 }
                 if (keysPressed['KeyS']) {
-                    camera.moveBackward(time_delta);
+                    cube.moveBackward(time_delta);
                 }
                 if (keysPressed['KeyA']) {
-                    camera.moveLeft(time_delta);
+                    cube.moveLeft(time_delta);
                 }
                 if (keysPressed['KeyD']) {
-                    camera.moveRight(time_delta);
+                    cube.moveRight(time_delta);
                 }
                 if (keysPressed['Space']) {
-                    camera.moveUp(time_delta);
+                    cube.moveUp(time_delta);
                 }
                 if (keysPressed['KeyC']) {
-                    camera.moveDown(time_delta);
+                    cube.moveDown(time_delta);
                 }
+            }
+
+            function updateCamera(time_delta) {
+                // Cập nhật trạng thái camera dựa trên các phím đã nhấn
+                
                 if (keysPressed['KeyQ']) {
                     camera.rollLeft(time_delta);
                 }
@@ -542,8 +562,10 @@
                 last_update = now;
 
                 updateCamera(time_delta);
+                updateCube(time_delta);
 
                 const viewMatrix = camera.getViewMatrix();
+                const cubeMatrix = cube.getModelMatrix();
             
                 // Create a projection matrix
                 let fov = Math.PI / 2; // 90 degrees
@@ -554,7 +576,7 @@
 
                 let scalingMatrix = Mat4.scaling(1.2,1.2,1.2);
                 let translationMatrix = Mat4.translation(0,0,2.8);
-                let model = viewMatrix.mul(scalingMatrix.mul(projectionMatrix.mul(translationMatrix)));
+                let model = cubeMatrix.mul(viewMatrix.mul(scalingMatrix.mul(projectionMatrix.mul(translationMatrix))));
 
                 // Update the shader uniform
                 set_uniform_matrix4(gl, shader_program, "modelview", model.data);
