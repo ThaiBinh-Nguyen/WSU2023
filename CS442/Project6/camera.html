@@ -133,11 +133,13 @@
             let atr_coord = gl.getAttribLocation(shader_program, "coordinates");
             gl.vertexAttribPointer(atr_coord, 3, gl.FLOAT, false, 12, 0); // 24 bytes per vertex
             gl.enableVertexAttribArray(atr_coord);
+
+            
             class Cube {
                 constructor() {
-                    // Ma trận biến đổi ban đầu của cube
-                    this.transformationMatrix = new Mat4();  // Giả định rằng constructor của Mat4 tạo ma trận đơn vị
-                }
+                    // Initialize the transformation matrix of the cube to identity matrix
+                    this.transformationMatrix = Mat4.identity();
+                    }
             
                 // Phương thức để di chuyển cube
                 moveForward(time_delta) {
@@ -255,6 +257,9 @@
                     else {
                         this.data = data;
                     }
+                }
+                static identity() {
+                    return new Mat4();
                 }
             
                 /**
