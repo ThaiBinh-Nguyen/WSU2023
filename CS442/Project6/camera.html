@@ -14,7 +14,7 @@
     </style>
 
     <head>
-        <title>Project 5: Perspective</title>
+        <title>Project 6: Camera</title>
     </head>
 
     <body>
@@ -129,63 +129,6 @@
                 static identity() {
                     return new Mat4();
                 }
-            
-                /**
-                * Returns a rotation matrix in the XY plane, rotating by the given number of turns. 
-                * @param {number} turns amount to rotate by
-                * @returns {Mat4}  
-                */
-                static rotation_xy( turns ) {
-                    
-                    // return the rotation matrix
-                    const Angle_from_Turns = 2 * Math.PI * turns;
-                    const Cosine = Math.cos(Angle_from_Turns);
-                    const Sine = Math.sin(Angle_from_Turns);
-                    return new Mat4([
-                        Cosine, Sine, 0, 0,
-                        -Sine,  Cosine, 0, 0,
-                        0,  0, 1, 0,
-                        0,  0, 0, 1
-                    ]);
-                }
-
-                /**
-                * Returns a rotation matrix in the XZ plane, rotating by the given number of turns
-                * @param {number} turns amount to rotate by
-                * @returns {Mat4}  
-                */
-                static rotation_xz( turns ) {
-
-                    // return the rotation matrix
-                    const Angle_from_Turns = 2 * Math.PI * turns;
-                    const Cosine = Math.cos(Angle_from_Turns);
-                    const Sine = Math.sin(Angle_from_Turns);
-                    return new Mat4([
-                        Cosine, 0,  Sine, 0,
-                        0, 1,  0, 0,
-                        -Sine, 0,  Cosine, 0,
-                        0, 0,  0, 1
-                    ]);
-                }
-
-                /**
-                * Returns a rotation matrix in the YZ plane, rotating by the given number of turns
-                * @param {number} turns amount to rotate by
-                * @returns {Mat4}  
-                */
-                static rotation_yz( turns ) {
-                    
-                    // return the rotation matrix
-                    const Angle_from_Turns = 2 * Math.PI * turns;
-                    const Cosine = Math.cos(Angle_from_Turns);
-                    const Sine = Math.sin(Angle_from_Turns);
-                    return new Mat4([
-                        1, 0,  0, 0,
-                        0, Cosine, Sine, 0,
-                        0, -Sine,  Cosine, 0,
-                        0, 0,  0, 1
-                    ]);
-                }
 
                 inverse() {
                     // var A2323 = m.m22 * m.m33 - m.m23 * m.m32 ;
@@ -273,14 +216,6 @@
                         dr * ( this.rc(0, 0) * A1212 - this.rc(0, 1) * A0212 + this.rc(0, 2) * A0112 ),
                     ] );
                 }
-                static scaling(sx, sy, sz) {
-                    return new Mat4([
-                        sx, 0, 0, 0,
-                        0, sy, 0, 0,
-                        0, 0, sz, 0,
-                        0, 0, 0, 1
-                    ]);
-                }
                 static translation( dx, dy, dz ) {
                     
                     // return the translation matrix
@@ -311,7 +246,6 @@
                     return new Mat4(result);
                 }
                 
-                //located inside of the Mat4 class
                 static frustum( left, right, bottom, top, near, far ) { 
                     // these scalars will scale x,y values to the near plane
                     let scale_x = 2 * near / ( right - left );
@@ -346,65 +280,55 @@
                         0,          0,          1, 0, 
                     ] );
                 }
-                // Inside the Mat4 class
-                static perspective(fov, aspect, near, far) {
-                    const top = near * Math.tan(fov * 0.5); 
-                    const bottom = -top;
-                    const right = top * aspect;
-                    const left = -right;
-                    
-                    return this.frustum(left, right, bottom, top, near, far);
-                }
-
             }
             function set_uniform_matrix4(gl, program, name, data) {
                 const loc = gl.getUniformLocation(program, name);
                 gl.uniformMatrix4fv(loc, false, data);
             }
 
+            // Create a projection matrix
+            let fov = Math.PI/2; // 90 degrees
+            let aspect = canvas.width / canvas.height;
+            let near = 1;
+            let far = 1001;
 
-            let last_update = performance.now();
+            let topp = near * Math.tan(fov * 0.5);
+            let bottom = -topp;
+            let right = topp * aspect;
+            let left = -right;
+
+            let projectionMatrix = Mat4.frustum(left, right, bottom, topp, near, far);
+
+            let camera = Mat4.identity().mul(Mat4.translation(0,0,-2));
 
             let mesh = Mesh.box(gl, shader_program, 1, 1, 1);
 
-            let keys = Keys.start_listening(document, canvas);
-
-            requestAnimationFrame(render);
-
-            function render(now) {
+            let key = Keys.start_listening(document, canvas);
+            
+            setInterval(update, 1000/60)
+            function update() {
+                if (key.is_key_down('KeyA')) {
+                    camera = camera.mul(Mat4.translation(-0.05, 0, 0));
+                }
+                return camera;
+            }
+            
+            function render() {
 
                 requestAnimationFrame(render); // Call the render function again
- 
-                // Calculate time delta
-                let time_delta = (now - last_update) / 1000;
-
-                last_update = now;
-                update();
-                // Create a projection matrix
-                let fov = Math.PI / 2; // 90 degrees
-                let aspect = canvas.width / canvas.height;
-                let near = 1;
-                let far = 1001;
-                let projectionMatrix = Mat4.perspective(fov, aspect, near, far);
-                var camera = Mat4.identity().mul(Mat4.translation(0,0,-1.2));
 
                 gl.enable(gl.DEPTH_TEST);
                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
                 let model = projectionMatrix.mul(camera.inverse());
 
-                //let model = viewMatrix.mul(projectionMatrix.mul(translationMatrix));
-
                 // Update the shader uniform
                 set_uniform_matrix4(gl, shader_program, "modelview", model.data);
                 
                 mesh.render(gl);
             }
-            setInterval(update, 1000/60)
-            function update() {
-                let speed = keys.is_key_down('Shiftleft') ? 4 : 1;
-                if (keys.is_key_down('KeyA')) camera = camera.mul(Mat4.translation(-0.02*speed, 0, 0));
-            }
+            
+            requestAnimationFrame(render);
         </script>
     </body>
 </html>
