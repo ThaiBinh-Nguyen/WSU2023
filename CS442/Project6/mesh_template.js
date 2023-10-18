@@ -1,27 +1,45 @@
 
 const VERTEX_STRIDE = 28;
+/**
+ * Creates a new index buffer and loads it into video memory.
+ * 
+ * @param {WebGLRenderingContext} gl  
+ * @param {number[]} indices
+ * @param {number} usage - Specifies the expected usage pattern of the data store.
+ * @return {WebGLBuffer}
+ */
+function create_and_load_elements_buffer(gl, indices, usage) {
+    // Create a buffer
+    const indexBuffer = gl.createBuffer();
 
+    // Bind the buffer
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+
+    // Load indices into the buffer
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), usage);
+
+    return indexBuffer;
+}
 
 function create_and_load_vertex_buffer(gl, vertices, usage) {
-    let Buffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, Buffer);
+    // Create a buffer
+    const vertexBuffer = gl.createBuffer();
+
+    // Bind the buffer
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+
+    // Load vertices into the buffer
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), usage);
-    return Buffer;
-}
 
-function create_and_load_elements_buffer(gl, vertices, usage) {
-    let Buffer = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, Buffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Int16Array(vertices), usage);
-    return Buffer;
+    return vertexBuffer;
 }
-
 function set_vertex_attrib_to_buffer(gl, program, attrib_name, buffer, size, type, normalized, stride, offset) {
     let attrib_location = gl.getAttribLocation(program, attrib_name);
     gl.enableVertexAttribArray(attrib_location);
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     gl.vertexAttribPointer(attrib_location, size, type, normalized, stride, offset);
 }
+
 class Mesh {
     /** 
      * Creates a new mesh and loads it into video memory.
@@ -49,43 +67,31 @@ class Mesh {
      */
 
     static box( gl, program, width, height, depth ) {
-        let hwidth = width / 2.0;
-        let hheight = height / 2.0;
-        let hdepth = depth / 2.0;
 
-        let verts = [
-            hwidth, -hheight, -hdepth,      1.0, 0.0, 0.0, 1.0,
-            -hwidth, -hheight, -hdepth,     0.0, 1.0, 0.0, 1.0,
-            -hwidth, hheight, -hdepth,      0.0, 0.0, 1.0, 1.0,
-            hwidth, hheight, -hdepth,       1.0, 1.0, 0.0, 1.0,
-
-            hwidth, -hheight, hdepth,       1.0, 0.0, 1.0, 1.0,
-            -hwidth, -hheight, hdepth,      0.0, 1.0, 1.0, 1.0,
-            -hwidth, hheight, hdepth,       0.5, 0.5, 1.0, 1.0,
-            hwidth, hheight, hdepth,        1.0, 1.0, 0.5, 1.0,
+        let vertices = [
+            // x, y, z, 
+            -1, -1, -1,  // Vertex 0
+            1, -1, -1, // Vertex 1
+            1,  1, -1, // Vertex 2
+            -1,  1, -1,  // Vertex 3
+            -1, -1,  1,  // Vertex 4
+            1, -1,  1,  // Vertex 5
+            1,  1,  1,  // Vertex 6
+            -1,  1,  1  // Vertex 7
         ];
 
-        let indis = [
-            // clockwise winding
-            /*
-            0, 1, 2, 2, 3, 0, 
-            4, 0, 3, 3, 7, 4, 
-            5, 4, 7, 7, 6, 5, 
-            1, 5, 6, 6, 2, 1,
-            3, 2, 6, 6, 7, 3,
-            4, 5, 1, 1, 0, 4,
-            */
 
-            // counter-clockwise winding
-            0, 3, 2, 2, 1, 0,
-            4, 7, 3, 3, 0, 4,
-            5, 6, 7, 7, 4, 5,
-            1, 2, 6, 6, 5, 1,
-            3, 7, 6, 6, 2, 3,
-            4, 0, 1, 1, 5, 4,
+        // Indices for the cube
+        let indices = [
+            0, 1, 2, 2, 3, 0,  // Front face
+            4, 5, 6, 6, 7, 4,  // Back face
+            4, 5, 1, 1, 0, 4,  // Bottom face
+            7, 6, 2, 2, 3, 7,  // Top face
+            4, 0, 3, 3, 7, 4,  // Left face
+            1, 5, 6, 6, 2, 1   // Right face
         ];
 
-        return new Mesh( gl, program, verts, indis );
+        return new Mesh( gl, program, vertices, indices );
     }
 
 
@@ -95,8 +101,6 @@ class Mesh {
      * @param {WebGLRenderingContext} gl 
      */
     render( gl ) {
-        gl.cullFace( gl.BACK );
-        gl.enable( gl.CULL_FACE );
         
         gl.useProgram( this.program );
         gl.bindBuffer( gl.ARRAY_BUFFER, this.verts );
@@ -128,47 +132,7 @@ class Mesh {
      */
     static from_obj_text( gl, program, text ) {
         // your code here
-        // Initialize empty arrays for vertices and indices
-        let vertices = [];
-        let indices = [];
-    
-        // Split the text into lines
-        let lines = text.split(/\r?\n/);
-    
-        // Loop through each line to parse vertices and faces
-        for(let i = 0; i < lines.length; i++) {
-            let line = lines[i].trim();
-
-            // Split the line into segments based on whitespace
-            let parts_of_line = line.split(/(\s+)/);
-
-            let filtered_parts = [];
-            for(let i = 0; i < parts_of_line.length; i++) {
-                let part = parts_of_line[i].trim();
-                if(part.length > 0) {
-                    filtered_parts.push(part);
-                }
-            }
-            
-            parts_of_line = filtered_parts;
-            // If the first segment is 'v', it's vertex information
-            if(parts_of_line[0] === 'v') {
-                let x = parseFloat(parts_of_line[1]);
-                let y = parseFloat(parts_of_line[2]);
-                let z = parseFloat(parts_of_line[3]);
-                vertices.push(x, y, z);
-                // Add color to the vertex (here it's green)
-                vertices.push(0, 0, 0, 1);
-            } 
-            // If the first segment is 'f', it's face information
-            else if(parts_of_line[0] === 'f') {
-                let index1 = parseInt(parts_of_line[1]) - 1;
-                let index2 = parseInt(parts_of_line[2]) - 1;
-                let index3 = parseInt(parts_of_line[3]) - 1;
-                indices.push(index1, index2, index3);
-            }
-        }
-        return new Mesh(gl, program, vertices, indices);
+        return new Mesh( /*your arguments here*/ );
     }
 
     /**

@@ -28,54 +28,7 @@
             let canvas = document.getElementById('the-canvas');
             /** @type {WebGLRenderingContext} */
             let gl = canvas.getContext('webgl2');
-            if (!gl) {
-                alert('WebGL not supported, falling back on experimental-webgl');
-                gl = canvas.getContext('experimental-webgl');
-            }
             
-            if (!gl) {
-                alert('Your browser does not support WebGL');
-            }
-            
-            gl.viewport(0, 0, canvas.width, canvas.height);
-
-            // Vertices for a cube (x, y, z)
-            let vertices = [
-                // x, y, z, 
-                -1, -1, -1,  // Vertex 0
-                1, -1, -1, // Vertex 1
-                1,  1, -1, // Vertex 2
-                -1,  1, -1,  // Vertex 3
-                -1, -1,  1,  // Vertex 4
-                1, -1,  1,  // Vertex 5
-                1,  1,  1,  // Vertex 6
-                -1,  1,  1  // Vertex 7
-            ];
-
-
-            // Indices for the cube
-            let indices = [
-                0, 1, 2, 2, 3, 0,  // Front face
-                4, 5, 6, 6, 7, 4,  // Back face
-                4, 5, 1, 1, 0, 4,  // Bottom face
-                7, 6, 2, 2, 3, 7,  // Top face
-                4, 0, 3, 3, 7, 4,  // Left face
-                1, 5, 6, 6, 2, 1   // Right face
-
-            ];
-
-            // Create and bind the vertex buffer
-            let vertexBuffer = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-            gl.bindBuffer( gl.ARRAY_BUFFER, null );
-
-            // Create and bind the index buffer
-            let indexBuffer = gl.createBuffer();
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
-            gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, null );
-
             // Clearing the canvas with specific color
             gl.clearColor(128 / 255, 204 / 255, 255 / 255, 1);
 
@@ -110,14 +63,8 @@
 
             // Compiling the shaders
             gl.compileShader(vert_shader);
-            if (!gl.getShaderParameter(vert_shader, gl.COMPILE_STATUS)) {
-                console.error("Vertex Shader Error: ", gl.getShaderInfoLog(vert_shader));
-            }
             gl.compileShader(frag_shader);
-            if (!gl.getShaderParameter(frag_shader, gl.COMPILE_STATUS)) {
-                console.error("Fragment Shader Error: ", gl.getShaderInfoLog(frag_shader));
-            }
-
+            
             // Creating a shader program and linking shaders to it
             let shader_program = gl.createProgram();
             gl.attachShader(shader_program, vert_shader);
@@ -125,19 +72,46 @@
             gl.linkProgram(shader_program);
 
             // Using the created program
-            gl.useProgram(shader_program);
+            gl.useProgram(shader_program);     
 
-            // Binding the buffer again
-            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-
-        
-            // Getting attribute locations and enabling them for coordinates
-            let atr_coord = gl.getAttribLocation(shader_program, "coordinates");
-            gl.vertexAttribPointer(atr_coord, 3, gl.FLOAT, false, 12, 0); // 24 bytes per vertex
-            gl.enableVertexAttribArray(atr_coord);
+            class Keys {
+                constructor() {
+                    this.keys_down = {};
+                }
             
-
+                static start_listening() {
+                    let keys = new Keys();
+            
+                    addEventListener('keydown', function(ev) {
+                        if (typeof ev.code === 'string') {
+                            keys.keys_down[ev.code] = true;
+                        }
+                    });
+            
+                    addEventListener('keyup', function(ev) {
+                        if (typeof ev.code === 'string') {
+                            keys.keys_down[ev.code] = false;
+                        }
+                    });
+            
+                    return keys;
+                }
+            
+                is_key_down(code) {
+                    return !!this.keys_down[code];
+                }
+            
+                is_key_up(code) {
+                    return !this.keys_down[code];
+                }
+            
+                keys_down_list() {
+                    return Object.entries(this.keys_down)
+                        .filter(kv => kv[1])  // filter by value (true)
+                        .map(kv => kv[0]);    // map to key
+                }
+            }
+            
             class Mat4 {
                 constructor( data ) {
                     if( data == null ) {
@@ -383,142 +357,6 @@
                 }
 
             }
-
-        
-            class Camera {
-                constructor() {
-                    this.transformationMatrix = Mat4.identity().mul(Mat4.translation(0,0,-1));
-                }
-            
-                moveForward() {  // W key
-                    const distance = 1 * 0.003;
-                    const translationMatrix = Mat4.translation(0, 0, -distance); // Z axis
-                    this.transformationMatrix = this.transformationMatrix.mul(translationMatrix);
-                }
-            
-                moveBackward() { // S key
-                    const distance = 1 * 0.003;
-                    const translationMatrix = Mat4.translation(0, 0, distance);
-                    this.transformationMatrix = this.transformationMatrix.mul(translationMatrix);
-                }
-            
-                moveLeft() { // A key
-                    const distance = 1 * 0.003;
-                    const translationMatrix = Mat4.translation(-distance, 0, 0); //X axis
-                    this.transformationMatrix = this.transformationMatrix.mul(translationMatrix); 
-                }
-                
-                moveRight() { // D key
-                    const distance = 1 * 0.003;
-                    const translationMatrix = Mat4.translation(distance, 0, 0); // X axis
-                    this.transformationMatrix = this.transformationMatrix.mul(translationMatrix);
-                }
-            
-                moveUp() { // Space key
-                    const distance = 1 * 0.003;
-                    const translationMatrix = Mat4.translation(0, distance, 0); // Y axis
-                    this.transformationMatrix = this.transformationMatrix.mul(translationMatrix);
-                }
-            
-                moveDown() { // C key
-                    const distance = 1 * 0.003;
-                    const translationMatrix = Mat4.translation(0, -distance, 0); // Y axis
-                    this.transformationMatrix = this.transformationMatrix.mul(translationMatrix);
-                }
-
-                rollLeft() {  //Q Key
-                    const angle = -0.1 * 0.003; // Adjust the multiplier as needed
-                    this.transformationMatrix = this.transformationMatrix.mul(Mat4.rotation_xy(angle));
-                }
-                
-                rollRight() { // E Key
-                    const angle = -0.1 * 0.003; // Adjust the multiplier as needed
-                    this.transformationMatrix = this.transformationMatrix.mul(Mat4.rotation_xy(-angle));
-                }
-                
-                rotateLeft() { //left arrow
-                    const angle = 0.1 * 0.003; // Adjust the multiplier as needed
-                    this.transformationMatrix = this.transformationMatrix.mul(Mat4.rotation_xz(-angle));
-                }
-                
-                rotateRight() { //right arrow
-                    const angle = 0.1 * 0.003; // Adjust the multiplier as needed
-                    this.transformationMatrix = this.transformationMatrix.mul(Mat4.rotation_xz(angle));
-                }
-                
-                rotateUp() { //Up arrow
-                    const angle = 0.1 * 0.003; // Adjust the multiplier as needed
-                    this.transformationMatrix = this.transformationMatrix.mul(Mat4.rotation_yz(-angle));
-                }
-                
-                rotateDown() { //Down arrow
-                    const angle = 0.1 * 0.003; // Adjust the multiplier as needed
-                    this.transformationMatrix = this.transformationMatrix.mul(Mat4.rotation_yz(angle));
-                }
-
-                // Phương thức để tính toán ma trận view
-                getViewMatrix() {
-                    // Compute the view matrix as the inverse of the camera model matrix
-                    let view = this.transformationMatrix.inverse();  // to implement the 'inverse' method in your Mat4 class
-                    return view;
-                }
-                
-            }
-
-            // Khởi tạo camera và theo dõi các phím đã nhấn
-            let camera = new Camera();
-            let keysPressed = {};
-
-            // Lắng nghe sự kiện từ bàn phím
-            document.addEventListener('keydown', function(event) {
-                keysPressed[event.code] = true;
-            });
-            document.addEventListener('keyup', function(event) {
-                keysPressed[event.code] = false;
-            });
-
-            //to move the camera
-            function updateCamera() {
-                // Cập nhật trạng thái camera dựa trên các phím đã nhấn
-                if (keysPressed['KeyW']) {
-                    camera.moveForward();
-                }
-                if (keysPressed['KeyS']) {
-                    camera.moveBackward();
-                }
-                if (keysPressed['KeyA']) {
-                    camera.moveLeft();
-                }
-                if (keysPressed['KeyD']) {
-                    camera.moveRight();
-                }
-                if (keysPressed['Space']) {
-                    camera.moveUp();
-                }
-                if (keysPressed['KeyC']) {
-                    camera.moveDown();
-                }
-                if (keysPressed['KeyQ']) {
-                    camera.rollLeft();
-                }
-                if (keysPressed['KeyE']) {
-                    camera.rollRight();
-                }
-                if (keysPressed['ArrowLeft']) {
-                    camera.rotateLeft();
-                }
-                if (keysPressed['ArrowRight']) {
-                    camera.rotateRight();
-                }
-                if (keysPressed['ArrowUp']) {
-                    camera.rotateUp();
-                }
-                if (keysPressed['ArrowDown']) {
-                    camera.rotateDown();
-                }
-            
-            }
-
             function set_uniform_matrix4(gl, program, name, data) {
                 const loc = gl.getUniformLocation(program, name);
                 gl.uniformMatrix4fv(loc, false, data);
@@ -527,8 +365,11 @@
 
             let last_update = performance.now();
 
-            let cube = Mesh.box(gl, shader_program, 1, 1, 1);
+            let mesh = Mesh.box(gl, shader_program, 1, 1, 1);
 
+            let keys = Keys.start_listening(document, canvas);
+
+            requestAnimationFrame(render);
 
             function render(now) {
 
@@ -538,38 +379,32 @@
                 let time_delta = (now - last_update) / 1000;
 
                 last_update = now;
-
-                updateCamera(); //
-
-                const viewMatrix = camera.getViewMatrix(); //to get the matrix after call function of Keys.
-            
+                update();
                 // Create a projection matrix
                 let fov = Math.PI / 2; // 90 degrees
                 let aspect = canvas.width / canvas.height;
                 let near = 1;
                 let far = 1001;
                 let projectionMatrix = Mat4.perspective(fov, aspect, near, far);
+                var camera = Mat4.identity().mul(Mat4.translation(0,0,-1.2));
 
-                //let scalingMatrix = Mat4.scaling(1.2,1.2,1.2); 
-                
-                //let translationMatrix = Mat4.translation(0,0,2.8);
+                gl.enable(gl.DEPTH_TEST);
+                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-                //let model = projectionMatrix.mul(viewMatrix);
+                let model = projectionMatrix.mul(camera.inverse());
 
-                let model = viewMatrix.mul(projectionMatrix);
+                //let model = viewMatrix.mul(projectionMatrix.mul(translationMatrix));
 
                 // Update the shader uniform
                 set_uniform_matrix4(gl, shader_program, "modelview", model.data);
                 
-                cube.render(gl);
-                
-                // Draw the object
-                // Enable depth test
-                //gl.enable(gl.DEPTH_TEST);
-                //gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-                //gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
+                mesh.render(gl);
             }
-            requestAnimationFrame(render);
+            setInterval(update, 1000/60)
+            function update() {
+                let speed = keys.is_key_down('Shiftleft') ? 4 : 1;
+                if (keys.is_key_down('KeyA')) camera = camera.mul(Mat4.translation(-0.02*speed, 0, 0));
+            }
         </script>
     </body>
 </html>
