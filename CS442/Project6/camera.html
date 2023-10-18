@@ -21,6 +21,8 @@
         <!-- Defining a canvas element with id 'the-canvas' -->
         <canvas id="the-canvas" width="800" height="500"></canvas>
 
+        <script src="./mesh_template.js"> </script>
+
         <script>
             // Initialize WebGL context
             let canvas = document.getElementById('the-canvas');
@@ -59,6 +61,7 @@
                 7, 6, 2, 2, 3, 7,  // Top face
                 4, 0, 3, 3, 7, 4,  // Left face
                 1, 5, 6, 6, 2, 1   // Right face
+
             ];
 
             // Create and bind the vertex buffer
@@ -133,115 +136,6 @@
             let atr_coord = gl.getAttribLocation(shader_program, "coordinates");
             gl.vertexAttribPointer(atr_coord, 3, gl.FLOAT, false, 12, 0); // 24 bytes per vertex
             gl.enableVertexAttribArray(atr_coord);
-
-            
-            class Cube {
-                constructor() {
-                    // Initialize the transformation matrix of the cube to identity matrix
-                    this.transformationMatrix = Mat4.identity();
-                    }
-            
-                // Phương thức để di chuyển cube
-                moveForward(time_delta) {
-                    const distance = 1 * time_delta;
-                    const translationMatrix = Mat4.translation(0, 0, -distance);
-                    this.transformationMatrix = this.transformationMatrix.mul(translationMatrix);
-                }
-            
-                moveBackward(time_delta) {
-                    const distance = 1 * time_delta;
-                    const translationMatrix = Mat4.translation(0, 0, distance);
-                    this.transformationMatrix = this.transformationMatrix.mul(translationMatrix);
-                }
-            
-                moveLeft(time_delta) {
-                    const distance = 1 * time_delta;
-                    const translationMatrix = Mat4.translation(-distance, 0, 0);
-                    this.transformationMatrix = this.transformationMatrix.mul(translationMatrix);
-                }
-                
-                moveRight(time_delta) {
-                    const distance = 1 * time_delta;
-                    const translationMatrix = Mat4.translation(distance, 0, 0);
-                    this.transformationMatrix = this.transformationMatrix.mul(translationMatrix);
-                }
-            
-                moveUp(time_delta) {
-                    const distance = 1 * time_delta;
-                    const translationMatrix = Mat4.translation(0, distance, 0);
-                    this.transformationMatrix = this.transformationMatrix.mul(translationMatrix);
-                }
-            
-                moveDown(time_delta) {
-                    const distance = 1 * time_delta;
-                    const translationMatrix = Mat4.translation(0, -distance, 0);
-                    this.transformationMatrix = this.transformationMatrix.mul(translationMatrix);
-                }
-            
-                getModelMatrix() {
-                    // Trả lại ma trận biến đổi hiện tại của cube
-                    return this.transformationMatrix;
-                }
-            }
-            
-
-            class Camera {
-                constructor() {
-                    this.position = [0, 0, 0];  // x, y, z
-                    this.rotation = [0, 0, 0];  // pitch, yaw, roll
-                }
-            
-                rollLeft(time_delta) {
-                    const angle = -0.1 * time_delta; // Adjust the multiplier as needed
-                    this.rotation[2] += angle;
-                }
-                
-                rollRight(time_delta) {
-                    const angle = 0.1 * time_delta; // Adjust the multiplier as needed
-                    this.rotation[2] -= angle;
-                }
-                
-                rotateLeft(time_delta) {
-                    const angle = 0.1 * time_delta; // Adjust the multiplier as needed
-                    this.rotation[1] -= angle;
-                }
-                
-                rotateRight(time_delta) {
-                    const angle = 0.1 * time_delta; // Adjust the multiplier as needed
-                    this.rotation[1] += angle;
-                }
-                
-                rotateUp(time_delta) {
-                    const angle = 0.1 * time_delta; // Adjust the multiplier as needed
-                    this.rotation[0] -= angle;
-                }
-                
-                rotateDown(time_delta) {
-                    const angle = 0.1 * time_delta; // Adjust the multiplier as needed
-                    this.rotation[0] += angle;
-                }
-
-
-                // Phương thức để tính toán ma trận view
-                getViewMatrix() {
-                    // Create the rotation matrices
-                    let R = Mat4.rotation_xy(this.rotation[2]);  // Roll
-                    let P = Mat4.rotation_yz(this.rotation[0]);  // Pitch
-                    let Y = Mat4.rotation_xz(this.rotation[1]);  // Yaw
-                
-                    // Create the translation matrix
-                    let T = Mat4.translation(this.position[0], this.position[1], this.position[2]);
-                
-                    // Compute the camera model matrix
-                    let camera_model = T.mul(Y).mul(P).mul(R);
-                
-                    // Compute the view matrix as the inverse of the camera model matrix
-                    let view = camera_model.inverse();  // You'll need to implement the 'inverse' method in your Mat4 class
-                
-                    return view;
-                }
-                
-            }
             
 
             class Mat4 {
@@ -480,7 +374,7 @@
                 }
                 // Inside the Mat4 class
                 static perspective(fov, aspect, near, far) {
-                    const top = near * Math.tan(fov * 0.5);
+                    const top = near * Math.tan(fov * 0.5); 
                     const bottom = -top;
                     const right = top * aspect;
                     const left = -right;
@@ -490,11 +384,90 @@
 
             }
 
+        
+            class Camera {
+                constructor() {
+                    this.transformationMatrix = Mat4.identity().mul(Mat4.translation(0,0,-1));
+                }
+            
+                moveForward() {  // W key
+                    const distance = 1 * 0.003;
+                    const translationMatrix = Mat4.translation(0, 0, -distance); // Z axis
+                    this.transformationMatrix = this.transformationMatrix.mul(translationMatrix);
+                }
+            
+                moveBackward() { // S key
+                    const distance = 1 * 0.003;
+                    const translationMatrix = Mat4.translation(0, 0, distance);
+                    this.transformationMatrix = this.transformationMatrix.mul(translationMatrix);
+                }
+            
+                moveLeft() { // A key
+                    const distance = 1 * 0.003;
+                    const translationMatrix = Mat4.translation(-distance, 0, 0); //X axis
+                    this.transformationMatrix = this.transformationMatrix.mul(translationMatrix); 
+                }
+                
+                moveRight() { // D key
+                    const distance = 1 * 0.003;
+                    const translationMatrix = Mat4.translation(distance, 0, 0); // X axis
+                    this.transformationMatrix = this.transformationMatrix.mul(translationMatrix);
+                }
+            
+                moveUp() { // Space key
+                    const distance = 1 * 0.003;
+                    const translationMatrix = Mat4.translation(0, distance, 0); // Y axis
+                    this.transformationMatrix = this.transformationMatrix.mul(translationMatrix);
+                }
+            
+                moveDown() { // C key
+                    const distance = 1 * 0.003;
+                    const translationMatrix = Mat4.translation(0, -distance, 0); // Y axis
+                    this.transformationMatrix = this.transformationMatrix.mul(translationMatrix);
+                }
+
+                rollLeft() {  //Q Key
+                    const angle = -0.1 * 0.003; // Adjust the multiplier as needed
+                    this.transformationMatrix = this.transformationMatrix.mul(Mat4.rotation_xy(angle));
+                }
+                
+                rollRight() { // E Key
+                    const angle = -0.1 * 0.003; // Adjust the multiplier as needed
+                    this.transformationMatrix = this.transformationMatrix.mul(Mat4.rotation_xy(-angle));
+                }
+                
+                rotateLeft() { //left arrow
+                    const angle = 0.1 * 0.003; // Adjust the multiplier as needed
+                    this.transformationMatrix = this.transformationMatrix.mul(Mat4.rotation_xz(-angle));
+                }
+                
+                rotateRight() { //right arrow
+                    const angle = 0.1 * 0.003; // Adjust the multiplier as needed
+                    this.transformationMatrix = this.transformationMatrix.mul(Mat4.rotation_xz(angle));
+                }
+                
+                rotateUp() { //Up arrow
+                    const angle = 0.1 * 0.003; // Adjust the multiplier as needed
+                    this.transformationMatrix = this.transformationMatrix.mul(Mat4.rotation_yz(-angle));
+                }
+                
+                rotateDown() { //Down arrow
+                    const angle = 0.1 * 0.003; // Adjust the multiplier as needed
+                    this.transformationMatrix = this.transformationMatrix.mul(Mat4.rotation_yz(angle));
+                }
+
+                // Phương thức để tính toán ma trận view
+                getViewMatrix() {
+                    // Compute the view matrix as the inverse of the camera model matrix
+                    let view = this.transformationMatrix.inverse();  // to implement the 'inverse' method in your Mat4 class
+                    return view;
+                }
+                
+            }
+
             // Khởi tạo camera và theo dõi các phím đã nhấn
             let camera = new Camera();
-            let cube = new Cube();
             let keysPressed = {};
-            let currentViewMatrix;
 
             // Lắng nghe sự kiện từ bàn phím
             document.addEventListener('keydown', function(event) {
@@ -504,47 +477,44 @@
                 keysPressed[event.code] = false;
             });
 
-            function updateCube(time_delta){
+            //to move the camera
+            function updateCamera() {
+                // Cập nhật trạng thái camera dựa trên các phím đã nhấn
                 if (keysPressed['KeyW']) {
-                    cube.moveForward(time_delta);
+                    camera.moveForward();
                 }
                 if (keysPressed['KeyS']) {
-                    cube.moveBackward(time_delta);
+                    camera.moveBackward();
                 }
                 if (keysPressed['KeyA']) {
-                    cube.moveLeft(time_delta);
+                    camera.moveLeft();
                 }
                 if (keysPressed['KeyD']) {
-                    cube.moveRight(time_delta);
+                    camera.moveRight();
                 }
                 if (keysPressed['Space']) {
-                    cube.moveUp(time_delta);
+                    camera.moveUp();
                 }
                 if (keysPressed['KeyC']) {
-                    cube.moveDown(time_delta);
+                    camera.moveDown();
                 }
-            }
-
-            function updateCamera(time_delta) {
-                // Cập nhật trạng thái camera dựa trên các phím đã nhấn
-                
                 if (keysPressed['KeyQ']) {
-                    camera.rollLeft(time_delta);
+                    camera.rollLeft();
                 }
                 if (keysPressed['KeyE']) {
-                    camera.rollRight(time_delta);
+                    camera.rollRight();
                 }
                 if (keysPressed['ArrowLeft']) {
-                    camera.rotateLeft(time_delta);
+                    camera.rotateLeft();
                 }
                 if (keysPressed['ArrowRight']) {
-                    camera.rotateRight(time_delta);
+                    camera.rotateRight();
                 }
                 if (keysPressed['ArrowUp']) {
-                    camera.rotateUp(time_delta);
+                    camera.rotateUp();
                 }
                 if (keysPressed['ArrowDown']) {
-                    camera.rotateDown(time_delta);
+                    camera.rotateDown();
                 }
             
             }
@@ -557,6 +527,9 @@
 
             let last_update = performance.now();
 
+            let cube = Mesh.box(gl, shader_program, 1, 1, 1);
+
+
             function render(now) {
 
                 requestAnimationFrame(render); // Call the render function again
@@ -566,31 +539,35 @@
 
                 last_update = now;
 
-                updateCamera(time_delta);
-                updateCube(time_delta);
+                updateCamera(); //
 
-                const viewMatrix = camera.getViewMatrix();
-                const cubeMatrix = cube.getModelMatrix();
+                const viewMatrix = camera.getViewMatrix(); //to get the matrix after call function of Keys.
             
                 // Create a projection matrix
                 let fov = Math.PI / 2; // 90 degrees
                 let aspect = canvas.width / canvas.height;
                 let near = 1;
-                let far = 2001;
+                let far = 1001;
                 let projectionMatrix = Mat4.perspective(fov, aspect, near, far);
 
-                let scalingMatrix = Mat4.scaling(1.2,1.2,1.2);
-                let translationMatrix = Mat4.translation(0,0,2.8);
-                let model = cubeMatrix.mul(viewMatrix.mul(scalingMatrix.mul(projectionMatrix.mul(translationMatrix))));
+                //let scalingMatrix = Mat4.scaling(1.2,1.2,1.2); 
+                
+                //let translationMatrix = Mat4.translation(0,0,2.8);
+
+                //let model = projectionMatrix.mul(viewMatrix);
+
+                let model = viewMatrix.mul(projectionMatrix);
 
                 // Update the shader uniform
                 set_uniform_matrix4(gl, shader_program, "modelview", model.data);
-
+                
+                cube.render(gl);
+                
                 // Draw the object
                 // Enable depth test
-                gl.enable(gl.DEPTH_TEST);
-                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-                gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
+                //gl.enable(gl.DEPTH_TEST);
+                //gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+                //gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
             }
             requestAnimationFrame(render);
         </script>
