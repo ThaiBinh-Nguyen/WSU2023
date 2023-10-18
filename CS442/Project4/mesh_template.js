@@ -33,7 +33,6 @@ class Mesh {
     */
     constructor( gl, program, vertices, indices ) {
         this.verts = create_and_load_vertex_buffer( gl, vertices, gl.STATIC_DRAW );
-        this.indis = create_and_load_elements_buffer( gl, indices, gl.STATIC_DRAW );
 
         this.n_verts = vertices.length;
         this.n_indis = indices.length;
