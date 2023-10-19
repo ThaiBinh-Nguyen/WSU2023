@@ -1,7 +1,7 @@
 <!-- Full Name: Thai Binh Nguyen
    Course: CS 442
    Professor: Dr. Grant Williams
-   Date: 10/03/2023
+   Date: 10/18/2023
 -->
 
 <!DOCTYPE html>
@@ -102,7 +102,7 @@
                 keys_down_list() {
                     return Object.entries(this.keys_down)
                         .filter(kv => kv[1])  // filter by value (true)
-                        .map(kv => kv[0]);    // map to key
+                        .map(kv => kv[0]);    // map to What_is_the_key
                 }
             }
             
@@ -124,58 +124,56 @@
 
             let projectionMatrix = Mat4.frustum(left, right, bottom, topp, near, far);
 
-            let camera = Mat4.identity().mul(Mat4.translation(0,0,-1.5));
+            let identity_Matrix = Mat4.identity();
 
-            let mesh = Mesh.box(gl, shader_program, 1, 1, 1);
+            let Main_Camera = identity_Matrix.mul(Mat4.translation(0,0,-1.5));
 
-            let key = Keys.start_listening();
+            let Box = Mesh.box(gl, shader_program, 1, 1, 1);
+
+            let What_is_the_key = Keys.start_listening();
             
-            setInterval(update, 1000/60)
+            let DESIRED_MSPT = 1000 / 60;
+
+            setInterval(update, DESIRED_MSPT )
             function update() {
-                if (key.is_key_down('KeyA')) {
-                    camera = camera.mul(Mat4.translation(-0.02, 0, 0));
+               
+                if (What_is_the_key.is_key_down('KeyW')) {
+                    Main_Camera = Main_Camera.mul(Mat4.translation(0, 0, 0.02));
                 }
-                if (key.is_key_down('KeyD')) {
-                    camera = camera.mul(Mat4.translation(0.02, 0, 0));
+                if (What_is_the_key.is_key_down('KeyS')) {
+                    Main_Camera = Main_Camera.mul(Mat4.translation(0, 0, -0.02));
                 }
-                if (key.is_key_down('KeyW')) {
-                    camera = camera.mul(Mat4.translation(0, 0, 0.02));
+                if (What_is_the_key.is_key_down('KeyA')) {
+                    Main_Camera = Main_Camera.mul(Mat4.translation(-0.02, 0, 0));
                 }
-                if (key.is_key_down('KeyS')) {
-                    camera = camera.mul(Mat4.translation(0, 0, -0.02));
+                if (What_is_the_key.is_key_down('KeyD')) {
+                    Main_Camera = Main_Camera.mul(Mat4.translation(0.02, 0, 0));
                 }
-                if (key.is_key_down('Space')) {
-                    camera = camera.mul(Mat4.translation(0, 0.02, 0));
+                if (What_is_the_key.is_key_down('Space')) {
+                    Main_Camera = Main_Camera.mul(Mat4.translation(0, 0.02, 0));
                 }
-                if (key.is_key_down('KeyC')) {
-                    camera = camera.mul(Mat4.translation(0, -0.02, 0));
+                if (What_is_the_key.is_key_down('KeyC')) {
+                    Main_Camera = Main_Camera.mul(Mat4.translation(0, -0.02, 0));
                 }
-                if (key.is_key_down('KeyQ')) {
-                    camera = camera.mul(Mat4.rotation_xy(-0.02));
+                if (What_is_the_key.is_key_down('KeyQ')) {
+                    Main_Camera = Main_Camera.mul(Mat4.rotation_xy(-0.02));
                 }
-                
-                if (key.is_key_down('KeyE')) {
-                    camera = camera.mul(Mat4.rotation_xy(0.02));
+                if (What_is_the_key.is_key_down('KeyE')) {
+                    Main_Camera = Main_Camera.mul(Mat4.rotation_xy(0.02));
                 }
-                
-                if (key.is_key_down('ArrowLeft')) {
-                    camera = camera.mul(Mat4.rotation_xz(-0.02));
+                if (What_is_the_key.is_key_down('ArrowLeft')) {
+                    Main_Camera = Main_Camera.mul(Mat4.rotation_xz(-0.008));
                 }
-                
-                if (key.is_key_down('ArrowRight')) {
-                    camera = camera.mul(Mat4.rotation_xz(0.02));
+                if (What_is_the_key.is_key_down('ArrowRight')) {
+                    Main_Camera = Main_Camera.mul(Mat4.rotation_xz(0.008));
                 }
-                
-                if (key.is_key_down('ArrowUp')) {
-                    camera = camera.mul(Mat4.rotation_yz(-0.02));
+                if (What_is_the_key.is_key_down('ArrowUp')) {
+                    Main_Camera = Main_Camera.mul(Mat4.rotation_yz(-0.008));
                 }
-                
-                if (key.is_key_down('ArrowDown')) {
-                    camera = camera.mul(Mat4.rotation_yz(0.02));
+                if (What_is_the_key.is_key_down('ArrowDown')) {
+                    Main_Camera = Main_Camera.mul(Mat4.rotation_yz(0.008));
                 }
             }
-            
-            requestAnimationFrame(render);
             
             function render() {
 
@@ -184,13 +182,15 @@
                 gl.enable(gl.DEPTH_TEST);
                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-                let model = projectionMatrix.mul(camera.inverse());
+                let model = projectionMatrix.mul(Main_Camera.inverse());
 
                 // Update the shader uniform
                 set_uniform_matrix4(gl, shader_program, "modelview", model.data);
                 
-                mesh.render(gl);
+                Box.render(gl);
             }
+            
+            requestAnimationFrame(render);
         </script>
     </body>
 </html>
