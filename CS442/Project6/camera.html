@@ -22,7 +22,8 @@
         <canvas id="the-canvas" width="800" height="500"></canvas>
 
         <script src="./mesh_template.js"> </script>
-        <script src="./matrix.js"> </script>
+        <script src = "lib.js"></script>
+        <script src = "matrix.js"></script>
 
         <script>
             // Initialize WebGL context
@@ -33,47 +34,39 @@
             // Clearing the canvas with specific color
             gl.clearColor(128 / 255, 204 / 255, 255 / 255, 1);
             
-            // Vertex Shader
             let vertex_source = 
-            `#version 300 es
+            `   #version 300 es
                 precision mediump float;
-                uniform mat4 modelview; // this is the matrix
+
+                uniform mat4 modelview;
+
                 in vec3 coordinates;
+                in vec4 color;
+
+                out vec4 v_color;
+
                 void main( void ) {
-                    gl_Position = modelview * vec4(coordinates, 1.0);
-                }`;
-
-            let fragment_source = 
-            `#version 300 es
-                precision mediump float;
-                out vec4 f_color;  // Declare f_color
-                void main(void) {
-                    /* we can test depth values with this.*/
-                    f_color = vec4(vec3(gl_FragCoord.z), 1.0);
-                }`;
-                
-
-
-            // Creating the Vertex and Fragment shaders
-            let vert_shader = gl.createShader( gl.VERTEX_SHADER );
-            let frag_shader = gl.createShader( gl.FRAGMENT_SHADER );
-
-            // Providing the source code to shaders
-            gl.shaderSource(vert_shader, vertex_source);
-            gl.shaderSource(frag_shader, fragment_source);
-
-            // Compiling the shaders
-            gl.compileShader(vert_shader);
-            gl.compileShader(frag_shader);
+                    gl_Position = modelview * vec4( coordinates, 1.0 );
+                    v_color = color;
+                }
+            `;
             
-            // Creating a shader program and linking shaders to it
-            let shader_program = gl.createProgram();
-            gl.attachShader(shader_program, vert_shader);
-            gl.attachShader(shader_program, frag_shader);
-            gl.linkProgram(shader_program);
+            let fragment_source = 
+            `   #version 300 es
+                precision mediump float;
 
-            // Using the created program
-            gl.useProgram(shader_program);  
+                in vec4 v_color;
+
+                out vec4 f_color;
+
+                void main( void ) {
+                    f_color = v_color;
+                }
+            `;
+
+            let shader_program = 
+                create_compile_and_link_program( gl, vertex_source, fragment_source );
+            gl.useProgram( shader_program );
 
             class Keys {
                 constructor() {
