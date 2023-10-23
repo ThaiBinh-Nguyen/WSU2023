@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=qwS8Vm20aRJ7Hz8i0pfrOHVDCUNlj_j4bgy_CgdEtdLtAbOF_TPAPQbTZLVxfIrR1C3f75YixifsnHmnXT3TvvgNsGBW6wbgxHycVcK8vm4_wVqPVPQgh5tF3tc4O43LfFMXjjSNjzAQBpqZGUBI7zaeBVKRA4RcEWac8E7l70qE_EIBHi2xF6A1S4wEBIVWZFl722_SHazs3wT9jMXOQuMkYaC1wmnfEgCdFr7NnRQ_LIpAWQptqwF5rOUrFM7tbxGWkPTjK86M2XA4NkDNSLm4VAVzHCUYEaxQObIVUSUtegzE8bV14J5rjdshmzA63Y3ymZE3dFXtt50kTv4KN99LbSTvNOZkJzsDcXdnwZWlOoOxFZohnglhDWQlpgqLPLsQc7rmmrzKbk1rfewYpfbAwL6-lCWG6fWiHKB36CaYTEni4GaFWZY4Fof78GKADUfHLW8pg-o1pekImtxPQYPX_mQvm9nG9HrfowaBeBPuqqipklPSMt-cWJq3Uvmt-gohb7TvAAQxwv6UQMerKexmUUAurn0BKmyELeOFXOKKOB3pxeoL7yoqC1MncxPgpI4az8jz5lMuZljAzGGrLSUMCHmQUtNbzOOVbvEQ21OfF9WbERuwEbAvsian1a7wX6n9eJVY2ctuM2aC-tNKhw4C6VX0pGhgJP6jw1eoGsA" charset="UTF-8"></script><style>
+            body { 
+            }
+            canvas {
+                width: 800;
+                height: 600;
+            }
+            #render-button {
+                width: 180px;
+                height: 50px;
+                font-size: 24pt;
+            }
+            #the-canvas { border: 1px solid darkblue; }
+            #user-matrix input { width: 64px; font-size: 24px; }
+        </style>
+    </head>
+
+    <body>
+        <canvas id = "the-canvas" width = "800" height = "600"></canvas>
+        <script src = "lib.js"></script>
+        <script src = "vector.js"></script>
+        <script src = "matrix.js"></script>
+        <script src = "mesh.js"></script>
+        <script src = "controls.js"></script>
+        <script src = "cam.js"></script>
+        <script>
+            let canvas = document.getElementById( 'the-canvas' );
+            /** @type {WebGLRenderingContext} */
+            let gl = canvas.getContext( 'webgl2' );
+
+            let vertex_source = 
+            `   #version 300 es
+                precision mediump float;
+
+                uniform mat4 modelview;
+
+                in vec3 coordinates;
+                in vec4 color;
+
+                out vec4 v_color;
+
+                void main( void ) {
+                    gl_Position = modelview * vec4( coordinates, 1.0 );
+                    v_color = color;
+                }
+            `;
+            
+            let fragment_source = 
+            `   #version 300 es
+                precision mediump float;
+
+                in vec4 v_color;
+
+                out vec4 f_color;
+
+                void main( void ) {
+                    f_color = v_color;
+                }
+            `;
+
+            let shader_program = 
+                create_compile_and_link_program( gl, vertex_source, fragment_source );
+            gl.useProgram( shader_program );
+
+            set_render_params( gl );
+
+            let last_update = performance.now();
+            const DESIRED_TICK_RATE = 60;
+            const DESIRED_MSPT = 1000.0 / DESIRED_TICK_RATE;
+
+            const ROTATION_SPEED = 0.125; // eighth turn per second
+            const ROTATION_SPEED_PER_FRAME = ROTATION_SPEED / DESIRED_TICK_RATE;
+
+            const FLY_SPEED = 1;    // units per second
+            const FLY_SPEED_PER_FRAME = FLY_SPEED / DESIRED_TICK_RATE;
+
+            let keys = Keys.start_listening();
+            let cam = new Camera();
+            cam.translate( 0, 0, -1.5 );
+
+            let mesh = Mesh.box( gl, shader_program, 1, 1, 1 );
+            let projection = Mat4.perspective_fovx( 0.25, 4 / 3, 0.25, 64 );
+
+            function render( now ) {
+                last_update = now;
+                gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
+
+                // note, normally projection would be a separate matrix (for lighting calculations)
+                // however, we haven't covered lighting yet, so let's demonstrate that we can
+                // combine transformations like this.
+                let model = Mat4.identity();
+                model = model.mul( projection );
+                model = model.mul( cam.get_view_matrix() );
+                
+                set_uniform_matrix4( 
+                    gl, shader_program, "modelview", model.data );
+
+                mesh.render( gl );
+
+                requestAnimationFrame( render );
+            }
+
+            const KEYMAP = {
+                'KeyW': function() { cam.move_in_direction( 0, 0, FLY_SPEED_PER_FRAME ); },
+                'KeyS': function() { cam.move_in_direction( 0, 0, -FLY_SPEED_PER_FRAME ); },
+                'KeyA': function() { cam.move_in_direction( -FLY_SPEED_PER_FRAME, 0, 0 ); },
+                'KeyD': function() { cam.move_in_direction( FLY_SPEED_PER_FRAME, 0, 0 ); },
+                'Space': function() { cam.translate( 0, FLY_SPEED_PER_FRAME, 0 ); },
+                'KeyC': function() { cam.translate( 0, -FLY_SPEED_PER_FRAME, 0 ); },
+                'KeyQ': function() { cam.add_roll( -ROTATION_SPEED_PER_FRAME ); },
+                'KeyE': function() { cam.add_roll( ROTATION_SPEED_PER_FRAME ); },
+                'ArrowLeft': function() { cam.add_yaw( -ROTATION_SPEED_PER_FRAME ); },
+                'ArrowRight': function() { cam.add_yaw( ROTATION_SPEED_PER_FRAME ); },
+                'ArrowUp': function() { cam.add_pitch( -ROTATION_SPEED_PER_FRAME ); },
+                'ArrowDown': function() { cam.add_pitch( ROTATION_SPEED_PER_FRAME ); },
+            };
+
+            function update() {
+                let keys_down = keys.keys_down_list();
+
+                for( const key of keys_down ) {
+                   let bound_function = KEYMAP[ key ];
+
+                   if( bound_function ) {
+                       bound_function();
+                   }
+                }
+
+                return;
+
+                /* this is another way of doing the key map. 
+                   but make sure you understand how the key binding approach works!
+
+                if( keys.is_key_down( 'KeyW' ) ) {
+                    cam.move_in_direction( 0, 0, FLY_SPEED_PER_FRAME );
+                }
+                if( keys.is_key_down( 'KeyS' ) ) {
+                    cam.move_in_direction( 0, 0, -FLY_SPEED_PER_FRAME );
+                }
+                if( keys.is_key_down( 'KeyA' ) ) {
+                    cam.move_in_direction( -FLY_SPEED_PER_FRAME, 0, 0 );
+                }
+                etc ...
+                }*/
+            }
+            
+            requestAnimationFrame( render );
+            setInterval( update, DESIRED_MSPT );
+        </script>
+    </body>
+</html>
