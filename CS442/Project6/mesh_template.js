@@ -34,7 +34,7 @@ class Mesh {
         let hdepth = depth / 2.0;
 
         let verts = [
-            hwidth, -hheight, -hdepth,      1.0, 0.0, 0.0, 1.0,
+            hwidth, -hheight, -hdepth,      1.0, 0.0, 0.0, 1.0, 
             -hwidth, -hheight, -hdepth,     0.0, 1.0, 0.0, 1.0,
             -hwidth, hheight, -hdepth,      0.0, 0.0, 1.0, 1.0,
             hwidth, hheight, -hdepth,       1.0, 1.0, 0.0, 1.0,
@@ -47,12 +47,12 @@ class Mesh {
 
         let indis = [
             // counter-clockwise winding
-            0, 3, 2, 2, 1, 0,
-            4, 7, 3, 3, 0, 4,
-            5, 6, 7, 7, 4, 5,
-            1, 2, 6, 6, 5, 1,
-            3, 7, 6, 6, 2, 3,
-            4, 0, 1, 1, 5, 4,
+            0, 3, 2, 2, 1, 0, //Back
+            4, 7, 3, 3, 0, 4, //Right
+            5, 6, 7, 7, 4, 5, //Front
+            1, 2, 6, 6, 5, 1, //Left
+            3, 7, 6, 6, 2, 3, //Top
+            4, 0, 1, 1, 5, 4, //Bottom
         ];
 
         return new Mesh( gl, program, verts, indis );

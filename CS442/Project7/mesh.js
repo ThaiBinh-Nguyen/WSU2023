@@ -33,41 +33,41 @@ class Mesh {
         let hdepth = depth / 2.0;
 
         let verts = [
-            // Front face
-            hwidth, hheight, hdepth,     1.0, 0.0, 0.0, 1.0,  //Top right
-            -hwidth, hheight, hdepth,    0.0, 1.0, 0.0, 1.0,    //Top Left
-            -hwidth, -hheight, hdepth,   0.0, 0.0, 1.0, 1.0,  //Bottom Left
-            hwidth, -hheight, hdepth,    1.0, 1.0, 0.0, 1.0,  //Bottom Right
-
             // Back face
-            hwidth, hheight, -hdepth,    1.0, 0.0, 1.0, 1.0, 
-            -hwidth, hheight, -hdepth,   0.0, 1.0, 1.0, 1.0, 
-            -hwidth, -hheight, -hdepth,  0.5, 0.5, 1.0, 1.0, 
-            hwidth, -hheight, -hdepth,   1.0, 1.0, 0.5, 1.0,  
-
-            // Top face
-            hwidth, hheight, -hdepth,    1.0, 0.5, 0.5, 1.0, 
-            -hwidth, hheight, -hdepth,   0.5, 0.5, 0.0, 1.0, 
-            -hwidth, hheight, hdepth,    0.5, 1.0, 0.5, 1.0,  
-            hwidth, hheight, hdepth,     1.0, 0.0, 0.5, 1.0, 
-
-            // Bottom face
-            hwidth, -hheight, -hdepth,   0.5, 0.0, 1.0, 1.0,
-            -hwidth, -hheight, -hdepth,  0.0, 0.5, 0.5, 1.0, 
-            -hwidth, -hheight, hdepth,   0.0, 0.5, 1.0, 1.0,
-            hwidth, -hheight, hdepth,    0.5, 0.0, 0.0, 1.0, 
+            hwidth, -hheight, -hdepth,      1.0, 0.0, 0.0, 1.0, 
+            -hwidth, -hheight, -hdepth,     0.0, 1.0, 0.0, 1.0,
+            -hwidth, hheight, -hdepth,      0.0, 0.0, 1.0, 1.0,
+            hwidth, hheight, -hdepth,       1.0, 1.0, 0.0, 1.0,
 
             // Right face
-            hwidth, hheight, -hdepth,   1.0, 1.0, 1.0, 1.0,  
-            hwidth, hheight, hdepth,    1.0, 0.0, 0.0, 1.0,  
-            hwidth, -hheight, hdepth,   1.0, 0.5, 0.5, 1.0, 
-            hwidth, -hheight, -hdepth,  1.0, 1.0, 0.0, 1.0, 
+            hwidth, -hheight, hdepth,       1.0, 1.0, 1.0, 1.0,  
+            hwidth, hheight, hdepth,        1.0, 0.0, 0.0, 1.0,  
+            hwidth, hheight, -hdepth,       1.0, 0.5, 0.5, 1.0, 
+            hwidth, -hheight, -hdepth,      1.0, 1.0, 0.0, 1.0, 
+
+            // Front face
+            hwidth, -hheight, hdepth,       1.0, 0.0, 1.0, 1.0,
+            -hwidth, -hheight, hdepth,      0.0, 1.0, 1.0, 1.0,
+            -hwidth, hheight, hdepth,       0.5, 0.5, 1.0, 1.0,
+            hwidth, hheight, hdepth,        1.0, 1.0, 0.5, 1.0,
 
             // Left face
-            -hwidth, hheight, hdepth,   0.5, 1.0, 0.5, 1.0, 
-            -hwidth, hheight, -hdepth,  0.5, 0.5, 0.0, 1.0,  
-            -hwidth, -hheight, -hdepth, 0.0, 1.0, 1.0, 1.0,  
-            -hwidth, -hheight, hdepth,  0.0, 0.0, 0.5, 1.0, 
+            -hwidth, -hheight, -hdepth,     0.5, 1.0, 0.5, 1.0, 
+            -hwidth, hheight, -hdepth,      0.5, 0.5, 0.0, 1.0,  
+            -hwidth, hheight, hdepth,       0.0, 1.0, 1.0, 1.0,  
+            -hwidth, -hheight, hdepth,      0.0, 0.0, 0.5, 1.0,
+
+            // Top face
+            hwidth, hheight, -hdepth,       1.0, 0.5, 0.5, 1.0, 
+            hwidth, hheight, hdepth,        0.5, 0.5, 0.0, 1.0, 
+            -hwidth, hheight, hdepth,       0.5, 1.0, 0.5, 1.0,  
+            -hwidth, hheight, -hdepth,      1.0, 0.0, 0.5, 1.0, 
+
+            // Bottom face
+            hwidth, -hheight, hdepth,       0.5, 0.0, 1.0, 1.0,
+            hwidth, -hheight, -hdepth,      0.0, 0.5, 0.5, 1.0, 
+            -hwidth, -hheight, -hdepth,     0.0, 0.5, 1.0, 1.0,
+            -hwidth, -hheight, hdepth,      0.5, 0.0, 0.0, 1.0, 
 
         ];
         
@@ -75,14 +75,66 @@ class Mesh {
         let indis = [
 
             // counter-clockwise winding
-            0, 1, 2, 2, 3, 0,           //Front Face
-            4, 5, 6, 6, 7, 4,           //Back Face
-            8, 9, 10, 10, 11, 8,        //Top Face
-            12, 13, 14, 14, 15, 12,     //Bottom Face
-            16, 17, 18, 18, 19, 16,     //Right Face
-            20, 21, 22, 22, 23, 20,     //Left Face
+            0, 3, 2, 2, 1, 0,           //Back Face
+            4, 5, 6, 6, 7, 4,           //Right Face
+            9, 10, 11, 11, 8, 9,        //Front Face
+            12, 13, 14, 14, 15, 12,     //Left Face
+            16, 17, 18, 18, 19, 16,     //Top Face
+            20, 21, 22, 22, 23, 20,     //Bottom Face
         ];
+        
+/*
+        let verts = [
+            // Back face
+            hwidth, -hheight, -hdepth,    0, 0,
+            -hwidth, -hheight, -hdepth,     0, 0,
+            -hwidth, hheight, -hdepth,     0, 0, 
+            hwidth, hheight, -hdepth,      0, 0,
 
+            // Right face
+            hwidth, -hheight, hdepth,      0, 0,  
+            hwidth, hheight, hdepth,       0, 0,  
+            hwidth, hheight, -hdepth,      0, 0,  
+            hwidth, -hheight, -hdepth,     0, 0, 
+
+            // Front face
+            hwidth, -hheight, hdepth,       0, 1,
+            -hwidth, -hheight, hdepth,      0, 0,
+            -hwidth, hheight, hdepth,       1, 0,
+            hwidth, hheight, hdepth,        1, 1,
+
+            // Left face
+            -hwidth, -hheight, -hdepth,    0, 0,
+            -hwidth, hheight, -hdepth,     0, 0,
+            -hwidth, hheight, hdepth,     0, 0,
+            -hwidth, -hheight, hdepth,     0, 0,
+
+            // Top face
+            hwidth, hheight, -hdepth,      0, 0, 
+            hwidth, hheight, hdepth,       0, 0,
+            -hwidth, hheight, hdepth,    0, 0,
+            -hwidth, hheight, -hdepth,     0, 0, 
+
+            // Bottom face
+            hwidth, -hheight, hdepth,     0, 0,  
+            hwidth, -hheight, -hdepth,   0, 0,  
+            -hwidth, -hheight, -hdepth,   0, 0,
+            -hwidth, -hheight, hdepth,   0, 0,  
+
+        ];
+        
+
+        let indis = [
+
+            // counter-clockwise winding
+            0, 3, 2, 2, 1, 0,           //Back Face
+            4, 5, 6, 6, 7, 4,           //Right Face
+            9, 10, 11, 11, 8, 9,        //Front Face
+            12, 13, 14, 14, 15, 12,     //Left Face
+            16, 17, 18, 18, 19, 16,     //Top Face
+            20, 21, 22, 22, 23, 20,     //Bottom Face
+        ];
+*/
         return new Mesh( gl, program, verts, indis );
     }
 
@@ -99,8 +151,6 @@ class Mesh {
         gl.useProgram( this.program );
         gl.bindBuffer( gl.ARRAY_BUFFER, this.verts );
         gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, this.indis );
-        
-        
 
         set_vertex_attrib_to_buffer( 
             gl, this.program, 

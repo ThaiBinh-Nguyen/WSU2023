@@ -33,24 +33,8 @@
 
             // Clearing the canvas with specific color
             gl.clearColor(128 / 255, 204 / 255, 255 / 255, 1);
-
-            function xor_texture(width) {
-                let data = new Uint8Array(width * width * 4);
-                for(let row = 0; row < width; row++) {
-                    for(let col = 0; col < width; col++) {
-                        let pix = (row * width + col) * 4;
-                        data[pix] = data[pix + 1] = data[pix + 2] = row ^ col;
-                        data[pix + 3] = 255;
-                    }
-                }
-                return data;
-            }
             
             let tex = gl.createTexture();
-            gl.bindTexture(gl.TEXTURE_2D, tex);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 256, 256, 0, gl.RGBA, gl.UNSIGNED_BYTE, xor_texture(256));
-            gl.generateMipmap(gl.TEXTURE_2D);
-
              // Load a real texture from an image
             let image = new Image();
             image.onload = function() {
@@ -58,7 +42,7 @@
                 gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
                 gl.generateMipmap(gl.TEXTURE_2D);
             };
-            image.src = './texture_map.png'; // replace with your texture url
+            image.src = './brick_wall.png'; 
 
             
             let vertex_source = 
@@ -99,6 +83,9 @@
                 create_compile_and_link_program( gl, vertex_source, fragment_source );
             gl.useProgram( shader_program );
             
+
+            const sampler_loc = gl.getUniformLocation(shader_program, 'tex_0');
+            gl.uniform1i(sampler_loc, 0);
 
             class Keys {
                 constructor() {
@@ -161,8 +148,8 @@
 
             let Main_Camera = identity_Matrix.mul(Mat4.translation(0,0,-1.5));
 
-            let Box = Mesh.box(gl, shader_program, 1, 1, 1);
-
+            let Box = Mesh.box(gl, shader_program, 1, 1, 1);  
+            
             let What_is_the_key = Keys.start_listening();
             
             let DESIRED_MSPT = 1000 / 60;
@@ -219,12 +206,8 @@
 
                 // Update the shader uniform
                 set_uniform_matrix4(gl, shader_program, "modelview", model.data);
-                const sampler_loc = gl.getUniformLocation(shader_program, 'tex_0');
-                gl.uniform1i(sampler_loc, 0);
-        
-                // Bind the texture
+                Box.render(gl);         
                 gl.bindTexture(gl.TEXTURE_2D, tex);
-                Box.render(gl);
             }
             
             requestAnimationFrame(render);
