@@ -219,7 +219,11 @@
 
                 // Update the shader uniform
                 set_uniform_matrix4(gl, shader_program, "modelview", model.data);
-
+                const sampler_loc = gl.getUniformLocation(shader_program, 'tex_0');
+                gl.uniform1i(sampler_loc, 0);
+        
+                // Bind the texture
+                gl.bindTexture(gl.TEXTURE_2D, tex);
                 Box.render(gl);
             }
             

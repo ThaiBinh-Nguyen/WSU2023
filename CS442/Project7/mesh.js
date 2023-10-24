@@ -34,40 +34,40 @@ class Mesh {
 
         let verts = [
             // Front face
-            hwidth, hheight, hdepth, // 1.0, 0.0, 0.0, 1.0,  1, 1,   //Top right
-            -hwidth, hheight, hdepth, //0.0, 1.0, 0.0, 1.0,  0, 1,   //Top Left
-            -hwidth, -hheight, hdepth,  //0.0, 0.0, 1.0, 1.0,  0, 0, //Bottom Left
-            hwidth, -hheight, hdepth,  // 1.0, 1.0, 0.0, 1.0,  1, 0, //Bottom Right
+            hwidth, hheight, hdepth,     1.0, 0.0, 0.0, 1.0,  //Top right
+            -hwidth, hheight, hdepth,    0.0, 1.0, 0.0, 1.0,    //Top Left
+            -hwidth, -hheight, hdepth,   0.0, 0.0, 1.0, 1.0,  //Bottom Left
+            hwidth, -hheight, hdepth,    1.0, 1.0, 0.0, 1.0,  //Bottom Right
 
             // Back face
-            hwidth, hheight, -hdepth,  // 1.0, 0.0, 1.0, 1.0,  1, 1,
-            -hwidth, hheight, -hdepth, // 0.0, 1.0, 1.0, 1.0,  0, 1,
-            -hwidth, -hheight, -hdepth,  // 0.5, 0.5, 1.0, 1.0,  0, 0,
-            hwidth, -hheight, -hdepth,   // 1.0, 1.0, 0.5, 1.0,  1, 0,
+            hwidth, hheight, -hdepth,    1.0, 0.0, 1.0, 1.0, 
+            -hwidth, hheight, -hdepth,   0.0, 1.0, 1.0, 1.0, 
+            -hwidth, -hheight, -hdepth,  0.5, 0.5, 1.0, 1.0, 
+            hwidth, -hheight, -hdepth,   1.0, 1.0, 0.5, 1.0,  
 
             // Top face
-            hwidth, hheight, -hdepth,  //  1.0, 0.5, 0.5, 1.0,  1, 1,
-            -hwidth, hheight, -hdepth, //  0.5, 0.5, 0.0, 1.0,  0, 1,
-            -hwidth, hheight, hdepth, // 0.5, 1.0, 0.5, 1.0,  0, 0,
-            hwidth, hheight, hdepth,   //1.0, 0.0, 0.5, 1.0,  1, 0,
+            hwidth, hheight, -hdepth,    1.0, 0.5, 0.5, 1.0, 
+            -hwidth, hheight, -hdepth,   0.5, 0.5, 0.0, 1.0, 
+            -hwidth, hheight, hdepth,    0.5, 1.0, 0.5, 1.0,  
+            hwidth, hheight, hdepth,     1.0, 0.0, 0.5, 1.0, 
 
             // Bottom face
-            hwidth, -hheight, -hdepth, //  0.5, 0.0, 1.0, 1.0,  1, 1,
-            -hwidth, -hheight, -hdepth, // 0.0, 0.5, 0.5, 1.0,  0, 1,
-            -hwidth, -hheight, hdepth, //0.0, 0.5, 1.0, 1.0,  0, 0,
-            hwidth, -hheight, hdepth, // 0.5, 0.0, 0.0, 1.0,  1, 0,
+            hwidth, -hheight, -hdepth,   0.5, 0.0, 1.0, 1.0,
+            -hwidth, -hheight, -hdepth,  0.0, 0.5, 0.5, 1.0, 
+            -hwidth, -hheight, hdepth,   0.0, 0.5, 1.0, 1.0,
+            hwidth, -hheight, hdepth,    0.5, 0.0, 0.0, 1.0, 
 
             // Right face
-            hwidth, hheight, -hdepth,  // 1.0, 1.0, 1.0, 1.0,  1, 1,
-            hwidth, hheight, hdepth,  //1.0, 0.0, 0.0, 1.0,  0, 1,
-            hwidth, -hheight, hdepth,  // 1.0, 0.5, 0.5, 1.0,  0, 0,
-            hwidth, -hheight, -hdepth,   // 1.0, 1.0, 0.0, 1.0,  1, 0,
+            hwidth, hheight, -hdepth,   1.0, 1.0, 1.0, 1.0,  
+            hwidth, hheight, hdepth,    1.0, 0.0, 0.0, 1.0,  
+            hwidth, -hheight, hdepth,   1.0, 0.5, 0.5, 1.0, 
+            hwidth, -hheight, -hdepth,  1.0, 1.0, 0.0, 1.0, 
 
             // Left face
-            -hwidth, hheight, hdepth, // 0.5, 1.0, 0.5, 1.0,  1, 1,
-            -hwidth, hheight, -hdepth,// 0.5, 0.5, 0.0, 1.0,  0, 1,
-            -hwidth, -hheight, -hdepth, // 0.0, 1.0, 1.0, 1.0,  0, 0,
-            -hwidth, -hheight, hdepth,  // 0.0, 0.0, 0.5, 1.0,  1, 0
+            -hwidth, hheight, hdepth,   0.5, 1.0, 0.5, 1.0, 
+            -hwidth, hheight, -hdepth,  0.5, 0.5, 0.0, 1.0,  
+            -hwidth, -hheight, -hdepth, 0.0, 1.0, 1.0, 1.0,  
+            -hwidth, -hheight, hdepth,  0.0, 0.0, 0.5, 1.0, 
 
         ];
         
@@ -100,11 +100,7 @@ class Mesh {
         gl.bindBuffer( gl.ARRAY_BUFFER, this.verts );
         gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, this.indis );
         
-        const sampler_loc = gl.getUniformLocation(shader_program, 'tex_0');
-        gl.uniform1i(sampler_loc, 0);
-
-        // Bind the texture
-        gl.bindTexture(gl.TEXTURE_2D, tex);
+        
 
         set_vertex_attrib_to_buffer( 
             gl, this.program, 
