@@ -34,40 +34,41 @@ class Mesh {
 
         let verts = [
             // Front face
-            hwidth, hheight, hdepth,     1, 1,   //Top right
-            -hwidth, hheight, hdepth,    0, 1,   //Top Left
-            -hwidth, -hheight, hdepth,   0, 0, //Bottom Left
-            hwidth, -hheight, hdepth,    1, 0, //Bottom Right
+            hwidth, hheight, hdepth, // 1.0, 0.0, 0.0, 1.0,  1, 1,   //Top right
+            -hwidth, hheight, hdepth, //0.0, 1.0, 0.0, 1.0,  0, 1,   //Top Left
+            -hwidth, -hheight, hdepth,  //0.0, 0.0, 1.0, 1.0,  0, 0, //Bottom Left
+            hwidth, -hheight, hdepth,  // 1.0, 1.0, 0.0, 1.0,  1, 0, //Bottom Right
 
             // Back face
-            hwidth, hheight, -hdepth,    1, 1,
-            -hwidth, hheight, -hdepth,   0, 1,
-            -hwidth, -hheight, -hdepth,  0, 0,
-            hwidth, -hheight, -hdepth,   1, 0,
+            hwidth, hheight, -hdepth,  // 1.0, 0.0, 1.0, 1.0,  1, 1,
+            -hwidth, hheight, -hdepth, // 0.0, 1.0, 1.0, 1.0,  0, 1,
+            -hwidth, -hheight, -hdepth,  // 0.5, 0.5, 1.0, 1.0,  0, 0,
+            hwidth, -hheight, -hdepth,   // 1.0, 1.0, 0.5, 1.0,  1, 0,
 
             // Top face
-            hwidth, hheight, -hdepth,    1, 1,
-            -hwidth, hheight, -hdepth,   0, 1,
-            -hwidth, hheight, hdepth,    0, 0,
-            hwidth, hheight, hdepth,     1, 0,
+            hwidth, hheight, -hdepth,  //  1.0, 0.5, 0.5, 1.0,  1, 1,
+            -hwidth, hheight, -hdepth, //  0.5, 0.5, 0.0, 1.0,  0, 1,
+            -hwidth, hheight, hdepth, // 0.5, 1.0, 0.5, 1.0,  0, 0,
+            hwidth, hheight, hdepth,   //1.0, 0.0, 0.5, 1.0,  1, 0,
 
             // Bottom face
-            hwidth, -hheight, -hdepth,   1, 1,
-            -hwidth, -hheight, -hdepth,  0, 1,
-            -hwidth, -hheight, hdepth,   0, 0,
-            hwidth, -hheight, hdepth,    1, 0,
+            hwidth, -hheight, -hdepth, //  0.5, 0.0, 1.0, 1.0,  1, 1,
+            -hwidth, -hheight, -hdepth, // 0.0, 0.5, 0.5, 1.0,  0, 1,
+            -hwidth, -hheight, hdepth, //0.0, 0.5, 1.0, 1.0,  0, 0,
+            hwidth, -hheight, hdepth, // 0.5, 0.0, 0.0, 1.0,  1, 0,
 
             // Right face
-            hwidth, hheight, -hdepth,    1, 1,
-            hwidth, hheight, hdepth,     0, 1,
-            hwidth, -hheight, hdepth,    0, 0,
-            hwidth, -hheight, -hdepth,   1, 0,
+            hwidth, hheight, -hdepth,  // 1.0, 1.0, 1.0, 1.0,  1, 1,
+            hwidth, hheight, hdepth,  //1.0, 0.0, 0.0, 1.0,  0, 1,
+            hwidth, -hheight, hdepth,  // 1.0, 0.5, 0.5, 1.0,  0, 0,
+            hwidth, -hheight, -hdepth,   // 1.0, 1.0, 0.0, 1.0,  1, 0,
 
             // Left face
-            -hwidth, hheight, hdepth,    1, 1,
-            -hwidth, hheight, -hdepth,   0, 1,
-            -hwidth, -hheight, -hdepth,  0, 0,
-            -hwidth, -hheight, hdepth,   1, 0,
+            -hwidth, hheight, hdepth, // 0.5, 1.0, 0.5, 1.0,  1, 1,
+            -hwidth, hheight, -hdepth,// 0.5, 0.5, 0.0, 1.0,  0, 1,
+            -hwidth, -hheight, -hdepth, // 0.0, 1.0, 1.0, 1.0,  0, 0,
+            -hwidth, -hheight, hdepth,  // 0.0, 0.0, 0.5, 1.0,  1, 0
+
         ];
         
 
