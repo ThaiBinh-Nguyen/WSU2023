@@ -207,7 +207,6 @@
                 // Update the shader uniform
                 set_uniform_matrix4(gl, shader_program, "modelview", model.data);
                 Box.render(gl);         
-                gl.bindTexture(gl.TEXTURE_2D, tex);
             }
             
             requestAnimationFrame(render);
