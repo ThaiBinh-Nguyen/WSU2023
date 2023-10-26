@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
 
     if (strcmp(argv[1], "scapegoat") == 0) {
         ScapeGoatNode* root = Call_ScapeGoat(argv[2]);
-        char username[50];
+        char username[16];
         while (scanf("%49s", username) != EOF) {
             //Search Player exists or not first. If not => create new Node
             //If Player exists => Add new information (ServerID, UNIX_TIME_OF_BAN)
@@ -63,7 +63,7 @@ int main(int argc, char *argv[]) {
             return 1;
         }
 
-        char username[50];
+        char username[16];
         while (scanf("%49s", username) != EOF) {
             //Search Player exists or not first. If not => create new Node
             //If Player exists => Add new information (ServerID, UNIX_TIME_OF_BAN)

@@ -178,7 +178,7 @@ ScapeGoatNode* Call_ScapeGoat(const char *file_name) {
     ScapeGoatNode* root = NULL;
     int h_alpha = 0; 
     
-    char username[50];
+    char username[16];
     int ID_of_Server;
     long UNIX_TIME_OF_BAN;
     ScapeGoatNode* newNode = NULL;

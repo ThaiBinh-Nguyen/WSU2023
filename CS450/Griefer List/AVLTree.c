@@ -66,7 +66,7 @@ AVLNode* LeftRotate(AVLNode* x) {
 AVLNode* InsertAVL(AVLNode* node, char* username, int ID_of_Server, long UNIX_TIME_OF_BAN) {
     if (node == NULL) {
         AVLNode* newNode = (AVLNode*)malloc(sizeof(AVLNode));
-        strncpy(newNode->username, username, 50);
+        strncpy(newNode->username, username, 16);
         newNode->information = (Information_of_Player*)malloc(sizeof(Information_of_Player));
         newNode->information->ID_of_Server = ID_of_Server;
         newNode->information->UNIX_TIME_OF_BAN = UNIX_TIME_OF_BAN;
@@ -142,7 +142,7 @@ AVLNode* Call_AVL(const char *file_name) {
     }
 
     AVLNode* root = NULL;
-    char username[50];
+    char username[16];
     int ID_of_Server;
     long UNIX_TIME_OF_BAN;
 

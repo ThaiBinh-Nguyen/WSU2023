@@ -19,7 +19,7 @@ typedef struct Information_of_Player {
 
 
 typedef struct ScapeGoatNode {
-    char username[50];
+    char username[16];
     Information_of_Player* information;
     int height;
     int subtreeSize;
@@ -30,7 +30,7 @@ typedef struct ScapeGoatNode {
 
 
 typedef struct AVLNode {
-    char username[50];           
+    char username[16];           
     Information_of_Player* information;           
     int height;                 
     struct AVLNode* left;   
