@@ -1,8 +1,9 @@
 #include "main.h"
 
-bool idExists(int* arr, int n, int target) {
+//Checking if ID of Server exist or not in Tree
+bool If_idServer_ExistOrNot(int* array, int n, int id_target) {
     for (int i = 0; i < n; ++i) {
-        if (arr[i] == target) {
+        if (array[i] == id_target) {
             return true;
         }
     }
@@ -15,39 +16,47 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+
+    //SCAPEGOAT PROGRAM
+
     if (strcmp(argv[1], "scapegoat") == 0) {
-        PlayerNode* root = run_scapegoat(argv[2]);
+        ScapeGoatNode* root = Call_ScapeGoat(argv[2]);
         char username[50];
         while (scanf("%49s", username) != EOF) {
-            PlayerNode* player = SearchPlayer(root, username);
-            if (player != NULL) {
-                Info* info = player->info;
-                int server_count = 0;
-                int unique_server_count = 0;
-                long most_recent_time = 0;
+            //Search Player exists or not first. If not => create new Node
+            //If Player exists => Add new information (ServerID, UNIX_TIME_OF_BAN)
+            ScapeGoatNode* Player = Search_Player_ScapeGoat(root, username);
+            if (Player != NULL) {
+                Information_of_Player* information = Player->information;
+                int Number_of_Server = 0;
+                int Unique_number_of_Server = 0;
+                long MostRecent_Time = 0;
 
-                int* unique_servers = malloc(100 * sizeof(int)); // Giả sử có tối đa 100 server khác nhau
+                int* Unique_Server = malloc(100 * sizeof(int)); 
 
-                // Đếm số server và tìm thời gian bị cấm gần đây nhất
-                while (info != NULL) {
-                    
-                    if (!idExists(unique_servers, unique_server_count, info->server_id)) {
-                        unique_servers[unique_server_count++] = info->server_id;
-                        server_count++;
+                
+                while (information != NULL) {
+                    //Count the number of SERVERID
+                    if (!If_idServer_ExistOrNot(Unique_Server, Unique_number_of_Server, information->ID_of_Server)) {
+                        Unique_Server[Unique_number_of_Server++] = information->ID_of_Server;
+                        Number_of_Server++;
                     }
-                    if (info->unix_time_of_ban > most_recent_time) {
-                        most_recent_time = info->unix_time_of_ban;
+                    //RETURN the most recent banned time 
+                    if (information->UNIX_TIME_OF_BAN > MostRecent_Time) {
+                        MostRecent_Time = information->UNIX_TIME_OF_BAN;
                     }
-                    info = info->next;
+                    information = information->next;
                 }
-                printf("%s was banned from %d servers. most recently on: %ld\n", username, server_count, most_recent_time);
+                printf("%s was banned from %d servers. most recently on: %ld\n", username, Number_of_Server, MostRecent_Time);
             } else {
                 printf("%s is not currently banned from any servers.\n", username);
             }
         }
 
+    // AVL PROGRAM
+
     } else if (strcmp(argv[1], "avl") == 0) {
-        AVLNode* root = run_avl(argv[2]);
+        AVLNode* root = Call_AVL(argv[2]);
 
         if (!root) {
             printf("Failed to build the AVL tree.\n");
@@ -56,35 +65,37 @@ int main(int argc, char *argv[]) {
 
         char username[50];
         while (scanf("%49s", username) != EOF) {
-            AVLNode* player = SearchAVL(root, username);
-            if (player != NULL) {
-                Info* info = player->info;
-                int server_count = 0;
-                int unique_server_count = 0;
-                long most_recent_time = 0;
+            //Search Player exists or not first. If not => create new Node
+            //If Player exists => Add new information (ServerID, UNIX_TIME_OF_BAN)
+            AVLNode* Player = Search_Player_AVL(root, username);
+            if (Player != NULL) {
+                Information_of_Player* information = Player->information;
+                int Number_of_Server = 0;
+                int Unique_number_of_Server = 0;
+                long MostRecent_Time = 0;
 
-                int* unique_servers = malloc(100 * sizeof(int)); // Giả sử có tối đa 100 server khác nhau
+                int* Unique_Server = malloc(100 * sizeof(int));
 
-                // Đếm số server và tìm thời gian bị cấm gần đây nhất
-                while (info != NULL) {
-                    if (!idExists(unique_servers, unique_server_count, info->server_id)) {
-                        unique_servers[unique_server_count++] = info->server_id;
-                        server_count++;
+                
+                while (information != NULL) {
+                    if (!If_idServer_ExistOrNot(Unique_Server, Unique_number_of_Server, information->ID_of_Server)) {
+                        Unique_Server[Unique_number_of_Server++] = information->ID_of_Server;
+                        Number_of_Server++;
                     }
-                    if (info->unix_time_of_ban > most_recent_time) {
-                        most_recent_time = info->unix_time_of_ban;
+                    if (information->UNIX_TIME_OF_BAN > MostRecent_Time) {
+                        MostRecent_Time = information->UNIX_TIME_OF_BAN;
                     }
-                    info = info->next;
+                    information = information->next;
                 }
-                printf("%s was banned from %d servers. most recently on: %ld\n", username, server_count, most_recent_time);
+                printf("%s was banned from %d servers. most recently on: %ld\n", username, Number_of_Server, MostRecent_Time);
 
-                free(unique_servers);
+                free(Unique_Server);
             } else {
                 printf("%s is not currently banned from any servers.\n", username);
             }
         }
     } else {
-        printf("Invalid program name. Use 'scapegoat' or 'btree'.\n");
+        printf("Invalid program name. Use 'scapegoat' or 'avl'.\n");
         return 1;
     }
 
