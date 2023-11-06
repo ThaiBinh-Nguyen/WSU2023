@@ -55,37 +55,75 @@
             let vertex_source = 
             `   #version 300 es
                 precision mediump float;
-
+                
                 uniform mat4 modelview;
+                uniform vec3 camera_position; // Add uniform to pass camera position
+                
+                // Material properties
                 uniform float mat_ambient;
                 uniform float mat_diffuse;
                 uniform float mat_specular;
                 uniform float mat_shininess;
                 
+                // Light properties
                 uniform vec3 sun_dir;
                 uniform vec3 sun_color;
-
+                
+                // Vertex attributes
                 in vec3 coordinates;
                 in vec4 color;
                 in vec2 uv;
-
+                in vec3 surf_normal;
+                
+                // Outputs to the fragment shader
                 out vec4 v_color;
                 out vec2 v_uv;
-                vec3 diff_color( 
-                    vec3 normal, 
+                
+                vec3 diff_color(
+                    vec3 normal,
                     vec3 light_dir,
-                    vec3 light_color, 
-                    float mat_diffuse 
+                    vec3 light_color,
+                    float mat_diffuse
                 ) {
-                    return mat_diffuse * light_color * max( dot( normal, light_dir ), 0.0 );
+                    return mat_diffuse * light_color * max(dot(normal, light_dir), 0.0);
                 }
-                void main( void ) {
-                    gl_Position = modelview * vec4( coordinates, 1.0 );
-                    vec3 normal_tx = normalize( mat3( modelview ) * surf_normal );
-                    vec4 ambient_color = vec4( mat_ambient, mat_ambient, mat_ambient, 1.0 );
-                    v_color = ambient_color;;
+                
+                vec3 spec_color(
+                    vec3 normal,
+                    vec3 light_dir,
+                    vec3 view_dir,
+                    vec3 light_color,
+                    float mat_specular,
+                    float shininess
+                ) {
+                    vec3 reflect_dir = reflect(-light_dir, normal); // Reflect the light vector about the normal
+                    float spec = pow(max(dot(view_dir, reflect_dir), 0.0), shininess);
+                    return mat_specular * light_color * spec;
+                }
+                
+                void main(void) {
+                    gl_Position = modelview * vec4(coordinates, 1.0);
+                    vec3 normal_tx = normalize(mat3(modelview) * surf_normal);
+                    vec3 coords_tx = (modelview * vec4(coordinates, 1.0)).xyz;
+                
+                    // Calculate the view direction
+                    vec3 view_dir = normalize(camera_position - coords_tx);
+                
+                    // Calculate lighting components
+                    vec4 ambient_color = vec4(mat_ambient, mat_ambient, mat_ambient, 1.0);
+                    vec3 diffuse = diff_color(normal_tx, sun_dir, sun_color, mat_diffuse);
+                    vec3 specular = vec3(0.0); // Initialize specular component
+                
+                    // Calculate specular color only if the normal is pointing towards the light
+                    float cos_light_surf_normal = dot(normal_tx, sun_dir);
+                    if (cos_light_surf_normal > 0.0) {
+                        specular = spec_color(normal_tx, sun_dir, view_dir, sun_color, mat_specular, mat_shininess);
+                    }
+                
+                    v_color = ambient_color + vec4(diffuse, 1.0) + vec4(specular, 1.0);
                     v_uv = uv;
                 }
+                
             `;
             
             let fragment_source = 
@@ -171,101 +209,13 @@
 
             let Main_Camera = identity_Matrix.mul(Mat4.translation(0,0,-1.5));
 
-            let Box = Mesh.box(gl, shader_program, 1, 1, 1);  
+            //let Box = Mesh.box(gl, shader_program, 1, 1, 1);  
+            
+            let Box = Mesh.make_uv_sphere(gl, shader_program, 30);
             
             let What_is_the_key = Keys.start_listening();
             
             let DESIRED_MSPT = 1000 / 60;
-
-            function make_uv_sphere(gl, program, subdivs, material) {
-                let verts = [];
-                let normals = [];
-                let uvs = [];
-                let inds = [];
-                const TAU = 2 * Math.PI;
-
-                // Hàm để tính toán các normals, sử dụng tọa độ của vertex và tâm của hình cầu
-                function calculateNormal(x, y, z) {
-                    let length = Math.sqrt(x * x + y * y + z * z);
-                    return [x / length, y / length, z / length];
-                }
-            
-                for (let layer = 0; layer <= subdivs; layer++) {
-                    let y_turns = layer / subdivs / 2;
-                    let y = Math.cos(y_turns * TAU) / 2;
-                    let rs = Math.sin(TAU * y_turns);
-            
-                    for (let subdiv = 0; subdiv < subdivs; subdiv++) {
-                        let turns = subdiv / subdivs;
-                        let rads = turns * TAU;
-                        let x = Math.cos(rads) / 2 * rs;
-                        let z = Math.sin(rads) / 2 * rs;
-            
-                        // Tính toán và thêm normals
-                      //  let normal = calculateNormal(x, y * radius, z);
-                      //  normals.push(...normal);
-            
-                        // Thêm vertices
-                        verts.push(x, y, z);
-                        
-                        // Thêm UVs
-                        let u = subdiv / subdivs;
-                        let v = layer / subdivs;
-                        verts.push(u, v);
-                    }
-                }
-            
-                // Tạo các indices cho các tam giác
-                for (let lat = 0; lat < subdivs; lat++) {
-                    for (let lon = 0; lon < subdivs; lon++) {
-                        let first = (lat * (subdivs + 1)) + lon;
-                        let second = first + subdivs + 1;
-                        inds.push(first);
-                        inds.push(second);
-                        inds.push(first + 1);
-            
-                        inds.push(second);
-                        inds.push(second + 1);
-                        inds.push(first + 1);
-                    }
-                }
-            
-                // Gửi dữ liệu đến GPU và thiết lập các buffer
-                let vertexBuffer = gl.createBuffer();
-                gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
-            
-                let normalBuffer = gl.createBuffer();
-                gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
-                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW);
-            
-                let uvBuffer = gl.createBuffer();
-                gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer);
-                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(uvs), gl.STATIC_DRAW);
-            
-                let indexBuffer = gl.createBuffer();
-                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-                gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(inds), gl.STATIC_DRAW);
-            
-                // Thiết lập các thuộc tính để có thể đọc dữ liệu từ các buffer
-                // Code cho phần này sẽ phụ thuộc vào cách bạn thiết lập shaders và các thuộc tính trong chúng
-                // Ví dụ:
-                // let positionLocation = gl.getAttribLocation(program, "a_position");
-                // gl.enableVertexAttribArray(positionLocation);
-                // gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-                // gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
-            
-                // Thực hiện tương tự với normals và uvs ...
-            
-                // Trả về một đối tượng có chứa tất cả buffer và thông tin cần thiết để vẽ UV sphere
-                return {
-                    vertexBuffer,
-                    normalBuffer,
-                    uvBuffer,
-                    indexBuffer,
-                    count: inds.length
-                };
-            }
 
             setInterval(update, DESIRED_MSPT )
             function update() {
@@ -320,6 +270,7 @@
                 // Update the shader uniform
                 set_uniform_matrix4(gl, shader_program, "modelview", model.data);
                 Box.render(gl);         
+
             }
             
             requestAnimationFrame(render);

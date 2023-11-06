@@ -19,13 +19,68 @@ class Mesh {
         this.program = program;
     }
 
-    /**
+    static make_uv_sphere(gl, program, subdivs, material) {
+        let verts = [];
+        let normals = [];
+        let uvs = [];
+        let inds = [];
+        const TAU = 2 * Math.PI;
+
+        // Hàm để tính toán các normals, sử dụng tọa độ của vertex và tâm của hình cầu
+        function calculateNormal(x, y, z) {
+            let length = Math.sqrt(x * x + y * y + z * z);
+            return [x / length, y / length, z / length];
+        }
+    
+        for (let layer = 0; layer <= subdivs; layer++) {
+            let y_turns = layer / subdivs / 2;
+            let y = Math.cos(y_turns * TAU) / 2;
+            let rs = Math.sin(TAU * y_turns);
+    
+            for (let subdiv = 0; subdiv < subdivs; subdiv++) {
+                let turns = subdiv / subdivs;
+                let rads = turns * TAU;
+                let x = Math.cos(rads) / 2 * rs;
+                let z = Math.sin(rads) / 2 * rs;
+    
+                // Tính toán và thêm normals
+                let normal = calculateNormal(x, y, z);
+                normals.push(...normal);
+    
+                // Thêm vertices
+                verts.push(x, y, z);
+                
+                // Thêm UVs
+                let u = subdiv / subdivs;
+                let v = layer / subdivs;
+                uvs.push(u, v);
+            }
+        }
+    
+        // Tạo các indices cho các tam giác
+        for (let lat = 0; lat < subdivs; lat++) {
+            for (let lon = 0; lon < subdivs; lon++) {
+                let first = (lat * (subdivs + 1)) + lon;
+                let second = first + subdivs + 1;
+                inds.push(first);
+                inds.push(second);
+                inds.push(first + 1);
+    
+                inds.push(second);
+                inds.push(second + 1);
+                inds.push(first + 1);
+            }
+        }
+        return new Mesh( gl, program, verts, inds );
+    }
+    /*
+    
      * Create a box mesh with the given dimensions and colors.
      * @param {WebGLRenderingContext} gl 
      * @param {number} width 
      * @param {number} height 
      * @param {number} depth 
-     */
+     
 
     static box( gl, program, width, height, depth ) {
         let hwidth = width / 2.0;
@@ -85,7 +140,7 @@ class Mesh {
         
         return new Mesh( gl, program, verts, indis );
     }
-
+*/
 
     /**
      * Render the mesh. Does NOT preserve array/index buffer or program bindings! 
@@ -106,13 +161,13 @@ class Mesh {
             this.verts, 3, 
             gl.FLOAT, false, VERTEX_STRIDE, 0 
         );
-
+/*
         set_vertex_attrib_to_buffer( 
             gl, this.program, 
             "color", 
             this.verts, 4, 
             gl.FLOAT, false, VERTEX_STRIDE, 12
-        );
+        );*/
 
         set_vertex_attrib_to_buffer( 
             gl, this.program, 
