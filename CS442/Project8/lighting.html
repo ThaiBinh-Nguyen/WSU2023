@@ -1,0 +1,328 @@
+<!-- Full Name: Thai Binh Nguyen
+   Course: CS 442
+   Professor: Dr. Grant Williams
+   Date: 10/18/2023
+-->
+
+<!DOCTYPE html>
+<html>
+    <!-- Applying styles for the canvas -->
+    <style>
+        #the-canvas {
+            border: 1px solid darkblue;
+        }
+    </style>
+
+    <head>
+        <title>Project 7: Texture</title>
+    </head>
+
+    <body>
+        <!-- Defining a canvas element with id 'the-canvas' -->
+        <canvas id="the-canvas" width="800" height="500"></canvas>
+
+        <script src="./mesh.js"> </script>
+        <script src = "./lib.js"></script>
+        <script src = "./matrix.js"></script>
+
+        <script>
+            // Initialize WebGL context
+            let canvas = document.getElementById('the-canvas');
+            /** @type {WebGLRenderingContext} */
+            let gl = canvas.getContext('webgl2');
+
+            // Clearing the canvas with specific color
+            gl.clearColor(128 / 255, 204 / 255, 255 / 255, 1);
+            
+            let tex = gl.createTexture();
+             // Load a real texture from an image
+             let image = new Image();
+             image.onload = function() {
+                 gl.bindTexture(gl.TEXTURE_2D, tex);
+                 gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+                 gl.generateMipmap(gl.TEXTURE_2D);
+             
+                 // Set material uniforms
+                 gl.uniform1f(gl.getUniformLocation(shader_program, 'mat_ambient'), 0.25);
+                 gl.uniform1f(gl.getUniformLocation(shader_program, 'mat_diffuse'), 1.0);
+                 gl.uniform1f(gl.getUniformLocation(shader_program, 'mat_specular'), 2.0);
+                 gl.uniform1f(gl.getUniformLocation(shader_program, 'mat_shininess'), 4.0);
+             };
+             image.src = './metal_scale.png';
+              
+
+            
+            let vertex_source = 
+            `   #version 300 es
+                precision mediump float;
+
+                uniform mat4 modelview;
+                uniform float mat_ambient;
+                uniform float mat_diffuse;
+                uniform float mat_specular;
+                uniform float mat_shininess;
+                
+                uniform vec3 sun_dir;
+                uniform vec3 sun_color;
+
+                in vec3 coordinates;
+                in vec4 color;
+                in vec2 uv;
+
+                out vec4 v_color;
+                out vec2 v_uv;
+                vec3 diff_color( 
+                    vec3 normal, 
+                    vec3 light_dir,
+                    vec3 light_color, 
+                    float mat_diffuse 
+                ) {
+                    return mat_diffuse * light_color * max( dot( normal, light_dir ), 0.0 );
+                }
+                void main( void ) {
+                    gl_Position = modelview * vec4( coordinates, 1.0 );
+                    vec3 normal_tx = normalize( mat3( modelview ) * surf_normal );
+                    vec4 ambient_color = vec4( mat_ambient, mat_ambient, mat_ambient, 1.0 );
+                    v_color = ambient_color;;
+                    v_uv = uv;
+                }
+            `;
+            
+            let fragment_source = 
+            `   #version 300 es
+                precision mediump float;
+
+                in vec4 v_color;
+                in vec2 v_uv;
+                uniform sampler2D tex_0;
+                out vec4 f_color;
+
+                void main( void ) {
+                    f_color = texture(tex_0, v_uv);
+                }
+            `;
+
+            let shader_program = 
+                create_compile_and_link_program( gl, vertex_source, fragment_source );
+            gl.useProgram( shader_program );
+            
+
+            const sampler_loc = gl.getUniformLocation(shader_program, 'tex_0');
+            gl.uniform1i(sampler_loc, 0);
+
+            class Keys {
+                constructor() {
+                    this.keys_down = {};
+                }
+            
+                static start_listening() {
+                    let keys = new Keys();
+            
+                    addEventListener('keydown', function(ev) {
+                        if (typeof ev.code === 'string') {
+                            keys.keys_down[ev.code] = true;
+                        }
+                    });
+            
+                    addEventListener('keyup', function(ev) {
+                        if (typeof ev.code === 'string') {
+                            keys.keys_down[ev.code] = false;
+                        }
+                    });
+            
+                    return keys;
+                }
+            
+                is_key_down(code) {
+                    return !!this.keys_down[code];
+                }
+            
+                is_key_up(code) {
+                    return !this.keys_down[code];
+                }
+            
+                keys_down_list() {
+                    return Object.entries(this.keys_down)
+                        .filter(kv => kv[1])  // filter by value (true)
+                        .map(kv => kv[0]);    // map to What_is_the_key
+                }
+            }
+            
+            function set_uniform_matrix4(gl, program, name, data) {
+                const loc = gl.getUniformLocation(program, name);
+                gl.uniformMatrix4fv(loc, true, data);
+            }
+
+
+            // Create a projection matrix
+            let fov = Math.PI/2; // 90 degrees
+            let aspect = canvas.width / canvas.height;
+            let near = 0.1;
+            let far = 101;
+
+            let topp = near * Math.tan(fov * 0.5);
+            let bottom = -topp;
+            let right = topp * aspect;
+            let left = -right;
+
+            let projectionMatrix = Mat4.frustum(left, right, bottom, topp, near, far);
+
+            let identity_Matrix = Mat4.identity();
+
+            let Main_Camera = identity_Matrix.mul(Mat4.translation(0,0,-1.5));
+
+            let Box = Mesh.box(gl, shader_program, 1, 1, 1);  
+            
+            let What_is_the_key = Keys.start_listening();
+            
+            let DESIRED_MSPT = 1000 / 60;
+
+            function make_uv_sphere(gl, program, subdivs, material) {
+                let verts = [];
+                let normals = [];
+                let uvs = [];
+                let inds = [];
+                const TAU = 2 * Math.PI;
+
+                // Hàm để tính toán các normals, sử dụng tọa độ của vertex và tâm của hình cầu
+                function calculateNormal(x, y, z) {
+                    let length = Math.sqrt(x * x + y * y + z * z);
+                    return [x / length, y / length, z / length];
+                }
+            
+                for (let layer = 0; layer <= subdivs; layer++) {
+                    let y_turns = layer / subdivs / 2;
+                    let y = Math.cos(y_turns * TAU) / 2;
+                    let rs = Math.sin(TAU * y_turns);
+            
+                    for (let subdiv = 0; subdiv < subdivs; subdiv++) {
+                        let turns = subdiv / subdivs;
+                        let rads = turns * TAU;
+                        let x = Math.cos(rads) / 2 * rs;
+                        let z = Math.sin(rads) / 2 * rs;
+            
+                        // Tính toán và thêm normals
+                      //  let normal = calculateNormal(x, y * radius, z);
+                      //  normals.push(...normal);
+            
+                        // Thêm vertices
+                        verts.push(x, y, z);
+                        
+                        // Thêm UVs
+                        let u = subdiv / subdivs;
+                        let v = layer / subdivs;
+                        verts.push(u, v);
+                    }
+                }
+            
+                // Tạo các indices cho các tam giác
+                for (let lat = 0; lat < subdivs; lat++) {
+                    for (let lon = 0; lon < subdivs; lon++) {
+                        let first = (lat * (subdivs + 1)) + lon;
+                        let second = first + subdivs + 1;
+                        inds.push(first);
+                        inds.push(second);
+                        inds.push(first + 1);
+            
+                        inds.push(second);
+                        inds.push(second + 1);
+                        inds.push(first + 1);
+                    }
+                }
+            
+                // Gửi dữ liệu đến GPU và thiết lập các buffer
+                let vertexBuffer = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
+            
+                let normalBuffer = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW);
+            
+                let uvBuffer = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer);
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(uvs), gl.STATIC_DRAW);
+            
+                let indexBuffer = gl.createBuffer();
+                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+                gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(inds), gl.STATIC_DRAW);
+            
+                // Thiết lập các thuộc tính để có thể đọc dữ liệu từ các buffer
+                // Code cho phần này sẽ phụ thuộc vào cách bạn thiết lập shaders và các thuộc tính trong chúng
+                // Ví dụ:
+                // let positionLocation = gl.getAttribLocation(program, "a_position");
+                // gl.enableVertexAttribArray(positionLocation);
+                // gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+                // gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
+            
+                // Thực hiện tương tự với normals và uvs ...
+            
+                // Trả về một đối tượng có chứa tất cả buffer và thông tin cần thiết để vẽ UV sphere
+                return {
+                    vertexBuffer,
+                    normalBuffer,
+                    uvBuffer,
+                    indexBuffer,
+                    count: inds.length
+                };
+            }
+
+            setInterval(update, DESIRED_MSPT )
+            function update() {
+               
+                if (What_is_the_key.is_key_down('KeyW')) {
+                    Main_Camera = Main_Camera.mul(Mat4.translation(0, 0, 0.02));
+                }
+                if (What_is_the_key.is_key_down('KeyS')) {
+                    Main_Camera = Main_Camera.mul(Mat4.translation(0, 0, -0.02));
+                }
+                if (What_is_the_key.is_key_down('KeyA')) {
+                    Main_Camera = Main_Camera.mul(Mat4.translation(-0.02, 0, 0));
+                }
+                if (What_is_the_key.is_key_down('KeyD')) {
+                    Main_Camera = Main_Camera.mul(Mat4.translation(0.02, 0, 0));
+                }
+                if (What_is_the_key.is_key_down('Space')) {
+                    Main_Camera = Main_Camera.mul(Mat4.translation(0, 0.02, 0));
+                }
+                if (What_is_the_key.is_key_down('KeyC')) {
+                    Main_Camera = Main_Camera.mul(Mat4.translation(0, -0.02, 0));
+                }
+                if (What_is_the_key.is_key_down('KeyQ')) {
+                    Main_Camera = Main_Camera.mul(Mat4.rotation_xy(-0.02));
+                }
+                if (What_is_the_key.is_key_down('KeyE')) {
+                    Main_Camera = Main_Camera.mul(Mat4.rotation_xy(0.02));
+                }
+                if (What_is_the_key.is_key_down('ArrowLeft')) {
+                    Main_Camera = Main_Camera.mul(Mat4.rotation_xz(-0.008));
+                }
+                if (What_is_the_key.is_key_down('ArrowRight')) {
+                    Main_Camera = Main_Camera.mul(Mat4.rotation_xz(0.008));
+                }
+                if (What_is_the_key.is_key_down('ArrowUp')) {
+                    Main_Camera = Main_Camera.mul(Mat4.rotation_yz(-0.008));
+                }
+                if (What_is_the_key.is_key_down('ArrowDown')) {
+                    Main_Camera = Main_Camera.mul(Mat4.rotation_yz(0.008));
+                }
+            }
+            
+            function render() {
+
+                requestAnimationFrame(render); // Call the render function again
+
+                gl.enable(gl.DEPTH_TEST);
+                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+                let model = projectionMatrix.mul(Main_Camera.inverse());
+
+                // Update the shader uniform
+                set_uniform_matrix4(gl, shader_program, "modelview", model.data);
+                Box.render(gl);         
+            }
+            
+            requestAnimationFrame(render);
+        </script>
+    </body>
+</html>

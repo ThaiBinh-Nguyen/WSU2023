@@ -1,3 +1,18 @@
+/*Name: Thai Binh Nguyen
+Project 3: Griefer List
+Date: 10/28/2023
+Instructor: Dr. Williams
+*/
+
+/* Usage: 
+1. Compile the main program: gcc -o main main.c AVLTree.c ScapeGoatTree.c
+2. To run AVL Tree Program: use "avl" for 2nd command line argument
+3. To run Scapegoat Tree Program: use "scapegoat" for 2nd command line argument
+*/
+
+
+
+
 #include "main.h"
 
 //Checking if ID of Server exist or not in Tree
