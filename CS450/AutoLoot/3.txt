@@ -1,0 +1,4 @@
+gold encrusted chalice, 50, 1000
+gold encrusted chalice, 50, 1000
+final weight: 100
+final value: 2000

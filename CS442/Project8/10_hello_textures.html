@@ -38,19 +38,72 @@
             let vertex_source = 
             `   #version 300 es
                 precision mediump float;
-
+                    
                 uniform mat4 modelview;
-
+                uniform vec3 camera_position; // Add uniform to pass camera position
+                
+                // Material properties
+                uniform float mat_ambient;
+                uniform float mat_diffuse;
+                uniform float mat_specular;
+                uniform float mat_shininess;
+                
+                // Light properties
+                uniform vec3 sun_dir;
+                uniform vec3 sun_color;
+                
+                // Vertex attributes
                 in vec3 coordinates;
                 in vec4 color;
                 in vec2 uv;
-
+                in vec3 surf_normal;
+                
+                // Outputs to the fragment shader
                 out vec4 v_color;
                 out vec2 v_uv;
-
-                void main( void ) {
-                    gl_Position = modelview * vec4( coordinates, 1.0 );
-                    v_color = color;
+                
+                vec3 diff_color(
+                    vec3 normal,
+                    vec3 light_dir,
+                    vec3 light_color,
+                    float mat_diffuse
+                ) {
+                    return mat_diffuse * light_color * max(dot(normal, light_dir), 0.0);
+                }
+                
+                vec3 spec_color(
+                    vec3 normal,
+                    vec3 light_dir,
+                    vec3 view_dir,
+                    vec3 light_color,
+                    float mat_specular,
+                    float shininess
+                ) {
+                    vec3 reflect_dir = reflect(-light_dir, normal); // Reflect the light vector about the normal
+                    float spec = pow(max(dot(view_dir, reflect_dir), 0.0), shininess);
+                    return mat_specular * light_color * spec;
+                }
+                
+                void main(void) {
+                    gl_Position = modelview * vec4(coordinates, 1.0);
+                    vec3 normal_tx = normalize(mat3(modelview) * surf_normal);
+                    vec3 coords_tx = (modelview * vec4(coordinates, 1.0)).xyz;
+                
+                    // Calculate the view direction
+                    vec3 view_dir = normalize(camera_position - coords_tx);
+                
+                    // Calculate lighting components
+                    vec4 ambient_color = vec4(mat_ambient, mat_ambient, mat_ambient, 1.0);
+                    vec3 diffuse = diff_color(normal_tx, sun_dir, sun_color, mat_diffuse);
+                    vec3 specular = vec3(0.0); // Initialize specular component
+                
+                    // Calculate specular color only if the normal is pointing towards the light
+                    float cos_light_surf_normal = dot(normal_tx, sun_dir);
+                    if (cos_light_surf_normal > 0.0) {
+                        specular = spec_color(normal_tx, sun_dir, view_dir, sun_color, mat_specular, mat_shininess);
+                    }
+                
+                    v_color = ambient_color + vec4(diffuse, 1.0) + vec4(specular, 1.0);
                     v_uv = uv;
                 }
             `;
@@ -101,13 +154,13 @@
             
             // let metal = new Material( gl, 'tex/metal_scale.png', gl.LINEAR );
             // let metal = new Material( gl, 'tex/metal_scale.png', gl.LINEAR_MIPMAP_NEAREST );
-            let metal = new Material( gl, 'tex/metal_scale.png', gl.NEAREST );
-            let metal_psx = new Material( gl, 'tex/metal_scale_psx.png', gl.LINEAR );
-            let grass = new Material( gl, 'tex/grass_lawn_seamless.png', gl.LINEAR );
-            let mapped = new Material( gl, 'tex/texture_map.png', gl.LINEAR_MIPMAP_LINEAR );
+            //let metal = new Material( gl, 'tex/metal_scale.png', gl.NEAREST );
+            //let metal_psx = new Material( gl, 'tex/metal_scale_psx.png', gl.LINEAR );
+            //let grass = new Material( gl, 'tex/grass_lawn_seamless.png', gl.LINEAR );
+            //let mapped = new Material( gl, 'tex/texture_map.png', gl.LINEAR_MIPMAP_LINEAR );
 
             // let mesh = UvMesh.box( gl, shader_program, 1, 1, 1, metal_psx );
-            let mesh = UvMesh.mapped_box( gl, shader_program, 1, 1, 1, mapped );
+            let mesh = UvMesh.make_uv_sphere( gl, shader_program, 30);
 
             let projection = Mat4.perspective_fovx( 0.25, 4 / 3, 0.125, 128 );
 
