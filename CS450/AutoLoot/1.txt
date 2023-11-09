@@ -4,3 +4,4 @@ boxing gloves, 1, 50
 diamond-studded boxing gloves, 1, 2500
 final weight: 116
 final value: 4150
+time taken in microseconds: 221 

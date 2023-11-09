@@ -46,3 +46,4 @@ diamond-studded boxing gloves, 1, 2500
 diamond chalice, 50, 5000
 final weight: 1000
 final value: 47499
+time taken in microseconds: 546 

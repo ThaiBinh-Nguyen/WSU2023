@@ -1,27 +1,36 @@
+/*
+Name: Thai Binh Nguyen
+Project 4: Auto Loot
+Date: 11-06-2023
+Instructor: Dr. Williams
+*/
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
+#include <limits.h>
 
-#define MAX_N 128
-#define MAX_W 1200
-#define MAX_ITEMS 128
-#define MAX_NAME_LENGTH 128
+#define Max_weight_of_Item 1200
+#define Max_number_of_Item 128
+#define Max_Length_of_Name 128
 
 typedef struct {
-    char name[MAX_NAME_LENGTH];
-    int weight;
-    int value;
+    char Name_of_Item[Max_Length_of_Name];
+    int Weight_of_Item;
+    int Value_of_Item;
 } Item;
 
 int max(int a, int b) {
     return (a > b) ? a : b;
 }
 
-void knapsack(int n, int W, Item items[]) {
-    int m[MAX_N+1][MAX_W+1], selected[MAX_N+1];
+void knapsack(int n, int W, Item Items[]) {
+    int m[Max_number_of_Item+1][Max_weight_of_Item+1], selected[Max_number_of_Item+1];
     int i, j;
 
-    // Khởi tạo cơ sở của quy hoạch động
+    //Create dynamic programming.
     for (j = 0; j <= W; j++) {
         m[0][j] = 0;
     }
@@ -29,60 +38,67 @@ void knapsack(int n, int W, Item items[]) {
         m[i][0] = 0;
     }
 
-    // Xây dựng bảng m theo nguyên tắc quy hoạch động
+    //Build the table
     for (i = 1; i <= n; i++) {
         for (j = 1; j <= W; j++) {
-            if (items[i-1].weight > j) {
+            if (Items[i-1].Weight_of_Item > j) {
                 m[i][j] = m[i-1][j];
             } else {
-                m[i][j] = max(m[i-1][j], m[i-1][j-items[i-1].weight] + items[i-1].value);
+                m[i][j] = max(m[i-1][j], m[i-1][j-Items[i-1].Weight_of_Item] + Items[i-1].Value_of_Item);
             }
         }
     }
-    // Truy ngược để xác định các món đồ được chọn
+
+    //The selected Items
     i = n; j = W;
-    memset(selected, 0, sizeof(selected)); // Khởi tạo mảng selected với giá trị 0
+    memset(selected, 0, sizeof(selected)); 
     while (i > 0 && j > 0) {
         if (m[i][j] != m[i-1][j]) {
-            selected[i] = 1; // Đánh dấu món đồ này được chọn
-            j = j - items[i-1].weight;
+            selected[i] = 1; 
+            j = j - Items[i-1].Weight_of_Item;
         }
         i--;
     }
 
-    // In danh sách các món đồ được chọn
-    int totalWeight = 0, totalValue = 0;
+    //Print selected Items
+    int Total_Weight = 0, Total_Value = 0;
     for (i = 1; i <= n; i++) {
         if (selected[i]) {
-            printf("%s, %d, %d\n", items[i-1].name, items[i-1].weight, items[i-1].value);
-            totalWeight += items[i-1].weight;
-            totalValue += items[i-1].value;
+            printf("%s, %d, %d\n", Items[i-1].Name_of_Item, Items[i-1].Weight_of_Item, Items[i-1].Value_of_Item);
+            Total_Weight += Items[i-1].Weight_of_Item;
+            Total_Value += Items[i-1].Value_of_Item;
         }
     }
 
-    // In tổng trọng lượng và tổng giá trị
-    printf("final weight: %d\n", totalWeight);
-    printf("final value: %d\n", totalValue);
+    //Print final weight and value.
+    printf("final weight: %d\n", Total_Weight);
+    printf("final value: %d\n", Total_Value);
 }
 
 int main() {
-    int carryWeight;
-    Item items[MAX_ITEMS];
-    int itemCount = 0;
+    
+    struct timespec start, end;
+    long time_in_micros;
+    int Carry_Weight;
+    Item Items[Max_number_of_Item];
+    int Counting_Items = 0;
 
-    // Đọc trọng lượng tối đa
-    scanf("%d\n", &carryWeight);
+    //Get the carry weight
+    scanf("%d\n", &Carry_Weight);
 
     // Đọc thông tin từng món đồ
-    while (scanf("%[^;];%d;%d\n", items[itemCount].name, &items[itemCount].weight, &items[itemCount].value) != EOF) {
-        itemCount++;
-        if (itemCount >= MAX_ITEMS) {
+    while (scanf("%[^;];%d;%d\n", Items[Counting_Items].Name_of_Item, &Items[Counting_Items].Weight_of_Item, &Items[Counting_Items].Value_of_Item) != EOF) {
+        Counting_Items++;
+        if (Counting_Items >= Max_number_of_Item) {
             break;
         }
     }
 
-    // Gọi hàm knapsack với dữ liệu đã đọc
-    knapsack(itemCount, carryWeight, items);
-
+    //Knapsack Function
+    clock_gettime(CLOCK_MONOTONIC, &start);
+    knapsack(Counting_Items, Carry_Weight, Items);
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    time_in_micros = (end.tv_sec - start.tv_sec) * 1000000 + (end.tv_nsec - start.tv_nsec) / 1000;
+    printf("time taken in microseconds: %ld \n", time_in_micros);
     return 0;
 }
