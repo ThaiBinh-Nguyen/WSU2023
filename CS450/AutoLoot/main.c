@@ -86,7 +86,7 @@ int main() {
     //Get the carry weight
     scanf("%d\n", &Carry_Weight);
 
-    // Đọc thông tin từng món đồ
+    //Get information of Items
     while (scanf("%[^;];%d;%d\n", Items[Counting_Items].Name_of_Item, &Items[Counting_Items].Weight_of_Item, &Items[Counting_Items].Value_of_Item) != EOF) {
         Counting_Items++;
         if (Counting_Items >= Max_number_of_Item) {
