@@ -254,7 +254,7 @@ void findPath(char** map, int rows, int cols, Node* start, Node* end) {
         // In bản đồ kết quả ra màn hình
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                printf("%c", map[i][j]);
+                printf("%c ", map[i][j]);
             }
             printf("\n");
         }
@@ -271,33 +271,34 @@ void findPath(char** map, int rows, int cols, Node* start, Node* end) {
 }
 
 char **readMapFromStdin(int *rows, int *cols) {
-    int rowSize = 1, colSize = 1;
+    int rowSize = 1, colSize = 0;  // Khởi tạo colSize là 0
     char **map = malloc(sizeof(char*));
     if (!map) return NULL;
-    map[0] = malloc(sizeof(char));
-    if (!map[0]) {
-        free(map);
-        return NULL;
-    }
+    map[0] = NULL;  // Khởi tạo dòng đầu tiên là NULL
     char ch;
     int currentCol = 0;
 
     while ((ch = getchar()) != EOF) {
         if (ch != '\n') {
-            if (currentCol >= colSize) {
-                colSize++;
-                for (int i = 0; i < rowSize; i++) {
-                    char *tempRow = realloc(map[i], colSize * sizeof(char));
-                    if (!tempRow) {
-                        for (int j = 0; j < i; j++) free(map[j]);
-                        free(map);
-                        return NULL;
+            if (ch != ' ') {  // Bỏ qua khoảng trắng
+                if (currentCol >= colSize) {
+                    colSize++;
+                    for (int i = 0; i < rowSize; i++) {
+                        char *tempRow = realloc(map[i], colSize * sizeof(char));
+                        if (!tempRow) {
+                            for (int j = 0; j < i; j++) free(map[j]);
+                            free(map);
+                            return NULL;
+                        }
+                        map[i] = tempRow;
                     }
-                    map[i] = tempRow;
                 }
+                map[rowSize - 1][currentCol++] = ch;
             }
-            map[rowSize - 1][currentCol++] = ch;
         } else {
+            if (currentCol == 0) {  // Bỏ qua dòng trống
+                continue;
+            }
             char *tempRow = malloc(colSize * sizeof(char));
             if (!tempRow) {
                 for (int i = 0; i < rowSize; i++) free(map[i]);
@@ -318,9 +319,10 @@ char **readMapFromStdin(int *rows, int *cols) {
         }
     }
     *rows = rowSize;
-    *cols = currentCol; // Cập nhật kích thước cột
+    *cols = colSize; // Cập nhật kích thước cột
     return map;
 }
+
 
 void freeMap(char **map, int rows) {
     for (int i = 0; i < rows; i++) {
