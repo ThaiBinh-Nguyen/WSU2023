@@ -26,7 +26,6 @@ class Mesh {
         let inds = [];
         const TAU = 2 * Math.PI;
 
-        // Hàm để tính toán các normals, sử dụng tọa độ của vertex và tâm của hình cầu
         function calculateNormal(x, y, z) {
             let length = Math.sqrt(x * x + y * y + z * z);
             return [x / length, y / length, z / length];
@@ -43,11 +42,9 @@ class Mesh {
                 let x = Math.cos(rads) / 2 * rs;
                 let z = Math.sin(rads) / 2 * rs;
     
-                // Tính toán và thêm normals
                 let normal = calculateNormal(x, y, z);
                 normals.push(...normal);
     
-                // Thêm vertices
                 verts.push(x, y, z);
                 
                 // Thêm UVs
@@ -57,7 +54,6 @@ class Mesh {
             }
         }
     
-        // Tạo các indices cho các tam giác
         for (let lat = 0; lat < subdivs; lat++) {
             for (let lon = 0; lon < subdivs; lon++) {
                 let first = (lat * (subdivs + 1)) + lon;
