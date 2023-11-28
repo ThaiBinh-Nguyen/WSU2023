@@ -1,3 +1,17 @@
+/*
+Name: Thai Binh Nguyen
+Project 5 - Tactical Strategy
+Instructor: Dr. Williams
+Date: 11-20-2023
+
+*/
+
+/* 
+    I used A* algorithm. But my work does not work correctly. I tried to fix it but I did not figure it out yet. 
+    I think my problem may be the A* algorithm.
+*/
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -10,21 +24,20 @@
 
 
 typedef struct Node {
-    int x, y; // Vị trí của nút
-    double G_Score; // Chi phí từ nút bắt đầu
-    double H_Score; // Heuristic (ước lượng chi phí đến đích)
-    double F_Score; // Tổng chi phí (G_Score + H_Score)
-    struct Node* parent; // Nút cha để truy ngược đường đi
+    int x, y; // Node's position
+    double G_Score; // Cost from the start node
+    double H_Score; // Heuristic (estimated cost to the destination)
+    double F_Score; // Total cost (G_Score + H_Score)
+    struct Node* parent; // Parent node for backtracking the path
 } Node;
 
 typedef struct {
-    Node** nodes; // Mảng các nút
-    int Number_of_Elements;     // Số lượng phần tử hiện tại
-    int Maximum; // Dung lượng tối đa
+    Node** nodes; // Array of nodes
+    int Number_of_Elements;     // Current number of elements
+    int Maximum; // Maximum capacity
 } PriorityQueue;
 
 
-// Khai báo các hàm ở đây
 Node* Create_New_Node(int x, int y, Node* parent, double G_Score, double H_Score);
 void freeNode(Node* node);
 Node* popNode(PriorityQueue* pq);
@@ -44,7 +57,7 @@ void Update_Node_in_Open_List(PriorityQueue* Open_List, Node* Neightbor_of_Node)
 
 
 
-// Hàm kiểm tra và cập nhật nút trong open list
+// Function to check and update a node in the open list
 void Update_Node_in_Open_List(PriorityQueue* Open_List, Node* Neightbor_of_Node) {
     for (int i = 0; i < Open_List->Number_of_Elements; i++) {
         if (Open_List->nodes[i]->x == Neightbor_of_Node->x && Open_List->nodes[i]->y == Neightbor_of_Node->y) {
@@ -77,10 +90,10 @@ Node* popNode(PriorityQueue* pq) {
         return NULL;
     }
 
-    // Lấy nút đầu tiên (có giá trị F_Score thấp nhất)
+    // Get the first node (with the lowest F_Score value)
     Node* topNode = pq->nodes[0];
 
-    // Di chuyển nút cuối cùng lên vị trí đầu tiên
+    // Move the last node to the first position
     pq->nodes[0] = pq->nodes[pq->Number_of_Elements - 1];
     pq->Number_of_Elements--;
 
@@ -89,25 +102,25 @@ Node* popNode(PriorityQueue* pq) {
     while (true) {
         int childIndex = 2 * currentIndex + 1;
         if (childIndex >= pq->Number_of_Elements) {
-            break; // Đã đến nút lá
+            break;
         }
 
-        // Tìm nút con có giá trị F_Score thấp nhất
+        // Find the child node with the lowest F_Score value
         if (childIndex + 1 < pq->Number_of_Elements && pq->nodes[childIndex + 1]->F_Score < pq->nodes[childIndex]->F_Score) {
             childIndex++;
         }
 
-        // Nếu nút hiện tại đã nhỏ hơn nút con, dừng lại
+        // If the current node is smaller than the child node, stop
         if (pq->nodes[currentIndex]->F_Score <= pq->nodes[childIndex]->F_Score) {
             break;
         }
 
-        // Đổi chỗ nút hiện tại với con nó
+        // Swap the current node with its child
         Node* temp = pq->nodes[currentIndex];
         pq->nodes[currentIndex] = pq->nodes[childIndex];
         pq->nodes[childIndex] = temp;
 
-        // Cập nhật chỉ số cho lần lặp tiếp theo
+        // Update the index for the next iteration
         currentIndex = childIndex;
     }
 
@@ -165,7 +178,7 @@ void resizeQueueIfNeeded(PriorityQueue* pq) {
 void Insert_Node(PriorityQueue* pq, Node* node) {
     resizeQueueIfNeeded(pq);
 
-    // Thêm nút mới vào cuối hàng đợi
+    // Add new node to the end of the queue
     pq->nodes[pq->Number_of_Elements] = node;
     pq->Number_of_Elements++;
 
@@ -177,12 +190,12 @@ void Insert_Node(PriorityQueue* pq, Node* node) {
             break;
         }
 
-        // Đổi chỗ nút hiện tại với cha nó
+        // Swap the current node with its parent
         Node* temp = pq->nodes[currentIndex];
         pq->nodes[currentIndex] = pq->nodes[parentIndex];
         pq->nodes[parentIndex] = temp;
 
-        // Cập nhật chỉ số cho lần lặp tiếp theo
+        // Update the index for the next iteration
         currentIndex = parentIndex;
     }
 }
@@ -190,7 +203,7 @@ void Insert_Node(PriorityQueue* pq, Node* node) {
 double Movement_Cost(char terrain, bool Check_Diagonal) {
     double cost = 0.0;
 
-    // Xác định chi phí dựa trên loại địa hình
+    // Determine costs based on terrain type
     switch (terrain) {
         case '.':
             cost = 1.0; // Road
@@ -208,7 +221,7 @@ double Movement_Cost(char terrain, bool Check_Diagonal) {
             cost = 0.0; // Character or invalid terrain
     }
 
-    // Nếu di chuyển là chéo, chi phí tăng lên 1.5 lần
+    // If the move is diagonal, the cost increases by 1.5 times
     if (Check_Diagonal) {
         cost *= 1.5;
     }
@@ -222,7 +235,7 @@ double Calculate_Cost_of_Path(Node* current, Node* Neightbor_of_Node, char** map
     bool Check_Diagonal = (current->x != Neightbor_of_Node->x && current->y != Neightbor_of_Node->y);
     double Base_cost = Movement_Cost(terrain, Check_Diagonal);
 
-    // Tránh di chuyển chéo qua các ô chứa nhân vật
+    // Avoid moving diagonally across cells containing characters
     if (Check_Diagonal) {
         if (map[current->x][Neightbor_of_Node->y] == '1' || map[current->x][Neightbor_of_Node->y] == '3' ||
             map[Neightbor_of_Node->x][current->y] == '1' || map[Neightbor_of_Node->x][current->y] == '3') {
@@ -236,9 +249,6 @@ double Calculate_Cost_of_Path(Node* current, Node* Neightbor_of_Node, char** map
 
     return Base_cost;
 }
-
-
-
 
 
 void Find_The_best_Path(char** map, int rows, int cols, Node* start, Node* end) {
@@ -256,31 +266,31 @@ void Find_The_best_Path(char** map, int rows, int cols, Node* start, Node* end) 
         int y = current->y;
 
         if (x == end->x && y == end->y) {
-            end->parent = current->parent; // Đảm bảo liên kết đúng đường đi
+            end->parent = current->parent;
             Path_Found = true;
             break;
         }
 
          Close_List[x][y] = true;
 
-        // Xét các nút láng giềng
+        // Consider neighbor nodes
         for (int dx = -1; dx <= 1; dx++) {
             for (int dy = -1; dy <= 1; dy++) {
-                if (dx == 0 && dy == 0) continue; // Bỏ qua nút hiện tại
+                if (dx == 0 && dy == 0) continue;
 
                 int newX = x + dx;
                 int newY = y + dy;
 
-                // Kiểm tra điều kiện hợp lệ của nút mới...
+                // Check the validity of the new node.
                 if (newX < 0 || newX >= rows || newY < 0 || newY >= cols) continue;
-                if (map[newX][newY] == '=' || Close_List[newX][newY]) continue; // Bỏ qua tường và nút đã xét
+                if (map[newX][newY] == '=' || Close_List[newX][newY]) continue;
                 if (map[newX][newY] == '1' || map[newX][newY] == '3') continue;
 
                 bool Check_Diagonal = (dx != 0 && dy != 0);
                 double newG = current->G_Score + Calculate_Cost_of_Path(current, Create_New_Node(newX, newY, NULL, 0, 0), map);
                 Node* Neightbor_of_Node = Create_New_Node(newX, newY, current, newG, Manhattan_Distance(newX, newY, end->x, end->y));
 
-                // Thêm nút láng giềng vào danh sách mở nếu chưa có
+              // Add neighbor node to open list if not already there
                 if (!Close_List[newX][newY]) {
                     Update_Node_in_Open_List (Open_List, Neightbor_of_Node);
                 }
@@ -288,20 +298,20 @@ void Find_The_best_Path(char** map, int rows, int cols, Node* start, Node* end) 
         }
     }
     if (Path_Found) {
-        // Đánh dấu đường đi trên bản đồ
-        Node* pathNode = end->parent; // Bắt đầu từ nút cha của điểm cuối để bỏ qua điểm cuối
+        // Mark the route on the map
+        Node* pathNode = end->parent;
         double totalCost = 0;
         Node* prevNode = pathNode;
         while (pathNode != start) {
             bool Check_Diagonal = (pathNode->x != prevNode->x && pathNode->y != prevNode->y);
             totalCost += Movement_Cost(map[pathNode->x][pathNode->y], Check_Diagonal);
-            map[pathNode->x][pathNode->y] = '*'; // Đánh dấu '*' trên đường đi
+            map[pathNode->x][pathNode->y] = '*';
             prevNode = pathNode;
             pathNode = pathNode->parent;
         }
-        map[start->x][start->y] = '0'; // Đánh dấu nút bắt đầu
+        map[start->x][start->y] = '0';
 
-        // In bản đồ kết quả ra màn hình
+        // Print the resulting map to the screen
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
                 printf("%c ", map[i][j]);
@@ -310,7 +320,7 @@ void Find_The_best_Path(char** map, int rows, int cols, Node* start, Node* end) 
         }
         printf("Total cost: %.1f\n", totalCost);
     }
-        // Dọn dẹp
+    
     freePriorityQueue(Open_List);
     for (int i = 0; i < rows; i++) {
         free(Close_List[i]);
@@ -319,16 +329,16 @@ void Find_The_best_Path(char** map, int rows, int cols, Node* start, Node* end) 
 }
 
 char **Read_Map_From_Input(int *rows, int *cols) {
-    int rowSize = 1, colSize = 0;  // Khởi tạo colSize là 0
+    int rowSize = 1, colSize = 0;
     char **map = malloc(sizeof(char*));
     if (!map) return NULL;
-    map[0] = NULL;  // Khởi tạo dòng đầu tiên là NULL
+    map[0] = NULL;
     char ch;
     int currentCol = 0;
 
     while ((ch = getchar()) != EOF) {
         if (ch != '\n') {
-            if (ch != ' ') {  // Bỏ qua khoảng trắng
+            if (ch != ' ') {
                 if (currentCol >= colSize) {
                     colSize++;
                     for (int i = 0; i < rowSize; i++) {
@@ -344,7 +354,7 @@ char **Read_Map_From_Input(int *rows, int *cols) {
                 map[rowSize - 1][currentCol++] = ch;
             }
         } else {
-            if (currentCol == 0) {  // Bỏ qua dòng trống
+            if (currentCol == 0) {
                 continue;
             }
             char *tempRow = malloc(colSize * sizeof(char));
@@ -367,7 +377,7 @@ char **Read_Map_From_Input(int *rows, int *cols) {
         }
     }
     *rows = rowSize;
-    *cols = colSize; // Cập nhật kích thước cột
+    *cols = colSize;
     return map;
 }
 
@@ -383,7 +393,7 @@ int main() {
     int rows, cols;
     char **map = Read_Map_From_Input(&rows, &cols);
 
-    // Tìm vị trí của nhân vật điều khiển và mục tiêu
+    // Find the location of the controller and target
     Node *start, *end;
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
@@ -395,10 +405,8 @@ int main() {
         }
     }
 
-    // Gọi hàm Find_The_best_Path
     Find_The_best_Path(map, rows, cols, start, end);
 
-    // Dọn dẹp
     freeMap(map, rows);
     freeNode(start);
     freeNode(end);
